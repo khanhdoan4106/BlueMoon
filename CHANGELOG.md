@@ -8,6 +8,16 @@ dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/). Mã story
 
 ## [Chưa phát hành]
 
+### Thêm
+
+- **Dữ liệu demo (`database/seed-demo.sql`):** chạy sau `schema.sql` +
+  `seed.sql` trên máy demo: 36 hộ, 105 nhân khẩu hư cấu, tạm trú/tạm
+  vắng, đổi chủ hộ, một hộ đã chuyển đi, 6 tháng chốt công nợ và khoảng
+  180 phiếu thu (có hộ nợ đọng, phiếu đã hủy, đóng góp quỹ), nhật ký
+  tương ứng; tài khoản Thủ quỹ mẫu `thuquy`. Chỉ nạp một lần trên CSDL
+  vừa dựng. Sinh bằng `scripts/sinh-seed-demo.py`; kiểm bằng `SeedDemoIT`
+  (`docs/setup.md`, mục 5).
+
 ## [v1.0.0] – 14/11/2026 – Sprint 4
 
 Bản phát hành đầu tiên đủ phạm vi v1.0: thống kê, báo cáo Excel, hộ nợ
