@@ -103,7 +103,8 @@ class SaoLuuIT {
         mysql = timCongCu("mysql");
         assumeTrue(mysqldump != null && mysql != null,
                 "Bo qua SaoLuuIT: khong tim thay mysqldump/mysql trong PATH"
-                        + " hay C:\\Program Files\\MySQL\\MySQL Server 8.0\\bin");
+                        + " hay C:\\Program Files\\MySQL\\MySQL"
+                        + " Server 8.0\\bin");
 
         cauHinh = Database.docCauHinh();
         Matcher m = URL.matcher(cauHinh.getProperty("url"));
@@ -404,7 +405,8 @@ class SaoLuuIT {
             assertEquals(cacDong(nguon, cotSinh), sinhKp);
             assertTrue(sinhKp.contains(
                     "phieu_thu_chi_tiet.phai_nop_da_thu STORED GENERATED"));
-            assertTrue(sinhKp.contains("nhan_khau.chu_ho_cua STORED GENERATED"));
+            assertTrue(sinhKp.contains(
+                    "nhan_khau.chu_ho_cua STORED GENERATED"));
 
             // Van tinh lai khi doi cot nguon, va UNIQUE tren cot sinh van
             // chan thu trung, chu ho thu hai.
