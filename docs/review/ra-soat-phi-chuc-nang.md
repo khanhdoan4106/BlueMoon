@@ -28,7 +28,13 @@ thấy xảy ra) và **lựa chọn thiết kế** (cố ý, có ghi trong tài 
   và từ nay CI tự kiểm.
 - Năm mục mức Trung bình (P2 – P6) và năm mục mức Thấp còn lại (P8 – P12)
   **chờ duyệt**, không sửa.
+- **Phát hiện khi đẩy các PR lên GitHub (P13):** job `build-mysql` đỏ mỗi
+  ngày từ 00:00 đến 07:00 giờ Việt Nam vì `SeedIT` lấy "hôm nay" theo múi
+  giờ của máy CI. Lỗi ở test, không ở ứng dụng. Vì nó chặn việc kiểm CI của
+  mọi PR nên đã sửa ở PR #50.
 - Không phát hiện lỗi nghiệp vụ.
+
+Pull Request: báo cáo này #47; P1 #48; P7 #49; P13 #50.
 
 Môi trường thử: `mysqld` 8.0.46 riêng ở cổng 3399, thư mục dữ liệu trong thư
 mục tạm của phiên; JDK Temurin 21.0.12; Windows 11, 16 GB RAM. CSDL
@@ -51,6 +57,7 @@ năng và các chương trình đo là tệp tạm, không đưa vào repo.
 | P10 | Thời gian đăng nhập cho biết tên đăng nhập có tồn tại hay không | Rủi ro | Thấp | 0,5 | Thấp | Chờ duyệt |
 | P11 | Controller ít test tự động (29% dòng); CI chưa đo độ phủ | Rủi ro | Thấp | 2 | Thấp | Chờ duyệt |
 | P12 | `architecture.md` liệt kê thiếu hai hàm Service không kiểm quyền | Tài liệu | Thấp | 0,2 | Không | Chờ duyệt |
+| P13 | `SeedIT` phụ thuộc múi giờ của JVM: CI đỏ từ 00:00 đến 07:00 giờ Việt Nam | Lỗi thật (ở test) | Trung bình | 0,5 | Thấp | Sửa: PR `fix/seed-it-mui-gio` (#50) |
 
 ## 2. Đánh giá theo NFR
 
@@ -399,6 +406,22 @@ khoi-phuc-thu.ps1  → khôi phục trong 1,6 s; 12 bảng khớp số dòng; t�
 public của Service không gọi `PhanQuyen.yeuCau`: thiếu
 `BaoCaoThuService.thangHienTai` và `NhatKyService.tuNgayMacDinh` (đều không
 đọc dữ liệu). Sửa câu chữ.
+
+### P13. `SeedIT` phụ thuộc múi giờ của JVM — Trung bình, lỗi thật (ở test)
+
+- **Bằng chứng:** ba PR #47, #48, #49 đẩy lên lúc 17:10 – 17:30 UTC ngày
+  14/11 (00:10 – 00:30 ngày 15/11 giờ Việt Nam) đều đỏ ở `build-mysql` với
+  cùng một lỗi, kể cả #47 chỉ có tài liệu:
+  `SeedIT.baTruongHopTamTruTamVangVaLichSuTamTru:103 expected: <2027-03-14>
+  but was: <2027-03-15>`. `main` chạy lúc 16:40 UTC thì xanh. Tái hiện ở máy
+  bằng `-DargLine=-Duser.timezone=UTC`.
+- **Nguyên nhân:** `SeedIT.java:96` và `:102` dùng `LocalDate.now()` theo
+  múi giờ JVM (máy CI là UTC); `seed.sql` dùng `CURDATE()` của phiên MySQL
+  đặt `+07:00`. Từ 17:00 đến 24:00 UTC hai bên lệch một ngày.
+- **Tác động:** 7 giờ mỗi ngày không PR nào xanh được, đúng khung giờ nhóm
+  hay làm khuya. Ứng dụng không bị ảnh hưởng.
+- **Đã sửa (PR #50):** dùng `LocalDate.now(DongHoCsdl.VN)`. Sau khi sửa,
+  69/69 kiểm thử tích hợp đạt với JVM đặt UTC.
 
 ### P6. In thông báo phí cho tất cả: mỗi hộ một kết nối — Trung bình, rủi ro
 
