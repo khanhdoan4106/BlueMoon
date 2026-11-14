@@ -110,6 +110,7 @@ Chiến lược kiểm thử và bảng AC → test: [docs/testing.md](docs/test
 │   ├── schema.sql                tạo CSDL và bảng
 │   └── seed.sql                  dữ liệu mẫu, tài khoản admin
 ├── config/db.properties.example  mẫu cấu hình kết nối (bản thật không commit)
+├── config/checkstyle.xml         luật Checkstyle: dòng tối đa 80 cột, không tab
 ├── docs/
 │   ├── requirements/             01–11: wish list → user story → backlog → traceability
 │   ├── design/                   kiến trúc, ERD, sơ đồ lớp, use case, giao diện, quy ước mã
