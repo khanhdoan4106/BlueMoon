@@ -86,7 +86,7 @@ hộ, các khoản chưa đóng, các quỹ tự nguyện đang mở.
 | Hộ gia đình | US-001 | `HoGiaDinhController`, `ho-gia-dinh.fxml` | `HoGiaDinhService` | `HoGiaDinhDao` | `HoGiaDinhServiceTest` |
 | Nhân khẩu, đổi chủ hộ | US-002, US-026 | `NhanKhauController`, `nhan-khau.fxml` | `NhanKhauService`, `KiemTraNhanKhau` | `NhanKhauDao` | `NhanKhauServiceTest` |
 | Tạm trú, tạm vắng | US-003 | `NhanKhauController` | `DotCuTruService` | `DotCuTruDao` | `DotCuTruServiceTest` |
-| Nhật ký thao tác | TS-002 | `TaiKhoanController` (tab "Nhật ký thao tác"), `tai-khoan.fxml` | `NhatKyService` | `NhatKyDao` (ghi trong giao dịch của từng DAO thao tác, `NoiDungNhatKy`) | `NhatKyServiceTest`, `ThaoTacTest`, `NoiDungNhatKyTest`, `NhatKyIT`, `BoCucFxmlTest` |
+| Nhật ký thao tác | TS-002 | `TaiKhoanController` (tab "Nhật ký thao tác"), `tai-khoan.fxml` | `NhatKyService` | `NhatKyDao` (ghi trong giao dịch của từng DAO thao tác, `NoiDungNhatKy`) | `NhatKyServiceTest`, `ThaoTacTest`, `NoiDungNhatKyTest`, `NhatKyIT`, `QuyenCsdlIT`, `BoCucFxmlTest` |
 | Lịch sử biến động nhân khẩu | US-027 | `HoGiaDinhController`, `TrangChinhController`, `BangLichSu` | `BienDongService` | `BienDongDao` (ghi trong giao dịch của DAO hộ, nhân khẩu, đợt) | `BienDongServiceTest`, `HoGiaDinhServiceTest`, `NhanKhauServiceTest`, `DotCuTruServiceTest`, `GiaoDichHoGiaDinhIT` |
 | Khung ứng dụng, menu theo vai trò | US-022 | `TrangChinhController`, `trang-chinh.fxml` | `PhanQuyen` | – | `TrangChinhMenuTest` |
 | Tổng thu tháng, biểu đồ 6 tháng ở Trang chính | US-016 | `TrangChinhController`, `BieuDoThuPhi`, `trang-chinh.fxml` | `ThongKeService`, `ThangTrucY` | `ThongKeDao` | `ThongKeServiceTest`, `ThangTrucYTest`, `DongTyLeTest`, `BieuDoThuPhiTest`, `ThongKeIT` |
@@ -130,6 +130,10 @@ ký; ghi nhật ký lỗi thì thao tác cũng hoàn tác.
   `SQLSTATE 45000` cho mọi `UPDATE`, `DELETE`. Thân trigger là một câu
   `SIGNAL`, không `BEGIN…END`, để `schema.sql` không cần `DELIMITER`
   và `CsdlThu` vẫn tách lệnh theo dấu `;`.
+- Trigger chỉ có nghĩa khi user của ứng dụng không gỡ được nó: user này
+  chỉ có `SELECT, INSERT, UPDATE` (xem [Kết nối CSDL](#kết-nối-csdl)), nên
+  `DROP TRIGGER`, `DELETE`, `TRUNCATE`, `ALTER` đều bị MySQL từ chối
+  (`QuyenCsdlIT`).
 - Xem: `NhatKyService.theoKhoang` (chỉ Quản trị viên, từ ngày ≤ đến ngày,
   lọc theo loại), mới nhất ở trên, không phân trang (quy mô vài trăm hộ).
 
@@ -175,6 +179,22 @@ trường ghi đè file) **một lần** ở lần dùng đầu, giữ trong b�
 `getConnection()` chỉ mở một kết nối mới. Đổi cấu hình thì khởi động lại ứng
 dụng. Đọc lỗi thì không lưu, lần sau thử đọc lại. Test đặt lại cấu hình bằng
 `Database.datLaiChoTest`.
+
+Hai user MySQL, tách theo việc:
+
+| User | Quyền trên `bluemoon.*` | Dùng cho |
+|---|---|---|
+| Ứng dụng (`config/db.properties`) | `SELECT, INSERT, UPDATE` | Mọi kết nối của ứng dụng |
+| Quản trị (root) | Mọi quyền | `schema.sql`, `seed.sql`, `seed-demo.sql`, khôi phục sao lưu |
+| Sao lưu (`bluemoon_sao_luu`) | `SELECT, SHOW VIEW, TRIGGER, LOCK TABLES` | `scripts/sao-luu.ps1` |
+
+Ứng dụng không có câu `DELETE` hay lệnh đổi cấu trúc nào (dữ liệu nghiệp vụ
+không xóa cứng), nên không cần quyền `DELETE`, `DROP`, `ALTER`, `TRIGGER`.
+`SELECT … FOR UPDATE` cần `SELECT` cùng `UPDATE`, đã đủ. Kiểm thử tích hợp
+và CI chạy DAO bằng user quyền tối thiểu này; `QuyenCsdlIT` khẳng định user
+ứng dụng không làm được việc ngoài ba quyền trên. Giới hạn còn lại: người
+có mật khẩu của user ứng dụng vẫn thêm, sửa trực tiếp được bảng nghiệp vụ,
+vì ứng dụng hai tầng nối thẳng MySQL (NFR-007).
 
 Giờ ghi vào CSDL không phụ thuộc máy chạy ứng dụng hay múi giờ của máy chủ
 MySQL (máy chủ trên CI chạy UTC), nên múi giờ được cố định ở ba chỗ:

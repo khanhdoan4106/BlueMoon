@@ -14,11 +14,20 @@
 
 1. Mở MySQL Workbench, kết nối bằng tài khoản root.
 2. Mở và chạy `database/schema.sql`, rồi `database/seed.sql` (biểu tượng tia sét).
-3. Tạo user cho ứng dụng, mỗi người tự đặt mật khẩu:
+3. Tạo user cho ứng dụng, mỗi người tự đặt mật khẩu. User này **chỉ được
+   đọc, thêm và sửa dữ liệu**; tạo bảng và trigger (bước 2) là việc của
+   root:
    ```sql
    CREATE USER 'bluemoon'@'localhost' IDENTIFIED BY 'mat_khau_cua_ban';
-   GRANT ALL ON bluemoon.* TO 'bluemoon'@'localhost';
+   GRANT SELECT, INSERT, UPDATE ON bluemoon.* TO 'bluemoon'@'localhost';
    ```
+   Máy đã cấp `GRANT ALL` theo hướng dẫn cũ thì root thu hồi rồi cấp lại:
+   ```sql
+   REVOKE ALL PRIVILEGES ON bluemoon.* FROM 'bluemoon'@'localhost';
+   GRANT SELECT, INSERT, UPDATE ON bluemoon.* TO 'bluemoon'@'localhost';
+   ```
+   Kiểm tra: `SHOW GRANTS FOR 'bluemoon'@'localhost';` chỉ còn `USAGE` và
+   `SELECT, INSERT, UPDATE` trên `bluemoon.*`.
 4. Sao chép `config/db.properties.example` thành `config/db.properties`,
    điền `user` và `password`. File này nằm trong `.gitignore`, không commit.
 
@@ -34,6 +43,14 @@
 > enabled". Chạy `schema.sql` bằng root (như bước 2) thì không gặp lỗi này.
 > `schema.sql` xóa trigger cũ (`DROP TRIGGER IF EXISTS`) trước khi tạo, nên
 > chạy lại được nhiều lần.
+
+> **Vì sao không cấp `GRANT ALL` cho user ứng dụng:** mật khẩu của user này
+> nằm trong `config/db.properties` trên mọi máy cài ứng dụng. Có `ALL` thì
+> ai đọc được tệp đó cũng gỡ được hai trigger trên rồi xóa nhật ký thao
+> tác, hoặc xóa cả bảng. Ứng dụng không xóa cứng dữ liệu và không đổi cấu
+> trúc bảng, nên chỉ cần `SELECT, INSERT, UPDATE`: không có `DELETE`,
+> `DROP`, `ALTER`, `TRIGGER`. Mọi việc cần quyền cao hơn (`schema.sql`,
+> `seed.sql`, `seed-demo.sql`, khôi phục sao lưu) chạy bằng root.
 
 ### Chạy lại `seed.sql`
 
@@ -77,8 +94,8 @@ Cách làm, bằng tài khoản root trong MySQL Workbench:
    cả dữ liệu tự nhập khi thử; dữ liệu mẫu sẽ có lại ở bước 2).
 2. Chạy lại `database/schema.sql`, rồi `database/seed.sql` (bước 2 ở
    trên).
-3. Không cần tạo lại user: quyền `GRANT ALL ON bluemoon.*` ở bước 3 vẫn
-   còn sau khi xóa CSDL.
+3. Không cần tạo lại user: quyền `SELECT, INSERT, UPDATE` trên
+   `bluemoon.*` ở bước 3 vẫn còn sau khi xóa CSDL.
 
 Khi mở Pull Request đổi cấu trúc bảng đã có, thêm một dòng vào bảng trên.
 
@@ -106,33 +123,41 @@ bảng của CSDL đó.
 
 ```sql
 CREATE DATABASE bluemoon_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-GRANT ALL ON bluemoon_test.* TO 'bluemoon'@'localhost';
+GRANT SELECT, INSERT, UPDATE ON bluemoon_test.* TO 'bluemoon'@'localhost';
 ```
 
-Mỗi test chạy lại `schema.sql`, kể cả tạo trigger nhật ký, bằng user đã cấu
-hình (`config/db.properties` hoặc `BLUEMOON_DB_USER`). User `bluemoon` không
-có quyền `SUPER`, nên nếu MySQL bật binary log (mặc định của MySQL 8) thì
-root chạy thêm một lần (giữ qua các lần khởi động lại MySQL):
+Kiểm thử dùng **hai user**, như khi chạy thật:
 
-```sql
-SET PERSIST log_bin_trust_function_creators = 1;
-```
+- **User ứng dụng** (`config/db.properties`, hoặc `BLUEMOON_DB_USER` và
+  `BLUEMOON_DB_PASSWORD`): mọi DAO và Service được thử bằng user này, chỉ
+  có `SELECT, INSERT, UPDATE`.
+- **User quản trị** (`BLUEMOON_DB_ADMIN_USER`,
+  `BLUEMOON_DB_ADMIN_PASSWORD`): mỗi test xóa, tạo lại bảng và trigger theo
+  `schema.sql`, nạp seed và tạo CSDL khôi phục thử bằng user này. Dùng
+  root. Nếu dùng user khác root thì cấp `ALL` trên `bluemoon_test.*` và
+  `bluemoon_test_khoi_phuc.*`, và vì MySQL 8 bật binary log sẵn, root chạy
+  thêm một lần `SET PERSIST log_bin_trust_function_creators = 1;` (không
+  thì tạo trigger báo lỗi 1419).
 
-Không muốn đổi biến này thì chạy kiểm thử tích hợp bằng root (đặt
-`BLUEMOON_DB_USER`, `BLUEMOON_DB_PASSWORD`), như CI.
-
-Rồi đặt biến môi trường và chạy `mvn verify -Pmysql` (PowerShell):
+Đặt biến môi trường rồi chạy `mvn verify -Pmysql` (PowerShell):
 
 ```powershell
 $env:BLUEMOON_DB_URL = "jdbc:mysql://localhost:3306/bluemoon_test?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh&characterEncoding=UTF-8"
+$env:BLUEMOON_DB_ADMIN_USER = "root"
+$env:BLUEMOON_DB_ADMIN_PASSWORD = "mat_khau_root"
 mvn verify -Pmysql
 ```
+
+Không đặt `BLUEMOON_DB_ADMIN_USER` thì mọi việc dùng user ứng dụng: khi đó
+user này phải đủ quyền tạo bảng (ví dụ đặt `BLUEMOON_DB_USER` là root), và
+`QuyenCsdlIT` (kiểm quyền tối thiểu của user ứng dụng) tự bỏ qua.
 
 Thiếu biến này, hoặc tên CSDL không có chữ `test`, thì các lớp `*IT` tự bỏ
 qua. `mvn verify` không có `-Pmysql` không chạy kiểm thử tích hợp.
 Trên GitHub, workflow `CI` có hai job: `build` (`mvn -B verify`) và `build-mysql`
-(service `mysql:8.0`, CSDL `bluemoon_test`, `mvn -B verify -Pmysql`), cả hai chạy
-cho mọi Pull Request. Chiến lược kiểm thử, bảng AC → test và các việc còn
+(service `mysql:8.0`, CSDL `bluemoon_test`, `mvn -B verify -Pmysql` với user
+ứng dụng `bluemoon_app` chỉ có `SELECT, INSERT, UPDATE` và user quản trị
+root), cả hai chạy cho mọi Pull Request. Chiến lược kiểm thử, bảng AC → test và các việc còn
 kiểm tay: [testing.md](testing.md).
 
 ## 5. Chuẩn bị demo
@@ -252,6 +277,8 @@ phiếu chỉ hủy được phiếu do mình lập.
 | `'mvn' is not recognized` | Chạy bằng bảng Maven trong IntelliJ |
 | Không thấy cửa sổ ứng dụng | Cửa sổ nằm sau IntelliJ, dùng Alt+Tab |
 | `CREATE USER` báo user đã tồn tại | Bỏ qua, chạy tiếp `GRANT` |
+| "Có lỗi khi đọc hoặc lưu dữ liệu" ở mọi thao tác lưu, sau khi đổi quyền của user CSDL | User ứng dụng thiếu quyền. Root chạy `SHOW GRANTS FOR 'bluemoon'@'localhost';`: phải có `SELECT, INSERT, UPDATE` trên `bluemoon.*` ([mục 2](#2-dựng-cơ-sở-dữ-liệu), bước 3) |
+| `command denied to user 'bluemoon'@'localhost'` khi chạy `schema.sql`, `seed.sql` hoặc khôi phục sao lưu | Đang chạy bằng user ứng dụng. Các tệp này chạy bằng root |
 | Lỗi 1419 "You do not have the SUPER privilege and binary logging is enabled" khi chạy `schema.sql`, `mvn verify -Pmysql` hoặc khôi phục sao lưu | Chạy `schema.sql` bằng root, hoặc cho kiểm thử tích hợp: [mục 4](#4-chạy-test); khôi phục sao lưu: [mục 7](#7-sao-lưu-và-khôi-phục) |
 | Sửa `config/db.properties` khi ứng dụng đang chạy (kể cả vừa tạo file sau khi thấy báo thiếu cấu hình) mà vẫn báo lỗi cũ | Tắt và mở lại ứng dụng: cấu hình chỉ được đọc một lần khi khởi động |
 
@@ -398,8 +425,8 @@ Khi CSDL `bluemoon` hỏng hoặc mất dữ liệu:
    powershell -ExecutionPolicy Bypass -File scripts\khoi-phuc-thu.ps1 -TepSaoLuu "<tệp .sql>" -CsdlDich bluemoon -GhiDe -TepTuyChon "<tệp tùy chọn của root>"
    ```
    Script hỏi gõ lại `bluemoon` để xác nhận, rồi xóa và tạo lại CSDL
-   `bluemoon` từ tệp; thiếu `-GhiDe` thì từ chối. Quyền `GRANT ALL ON
-   bluemoon.*` của user ứng dụng vẫn còn sau khi xóa CSDL.
+   `bluemoon` từ tệp; thiếu `-GhiDe` thì từ chối. Quyền của user ứng
+   dụng trên `bluemoon.*` (mục 2, bước 3) vẫn còn sau khi xóa CSDL.
 4. Mở lại ứng dụng ở một máy, kiểm tra vài hộ và phiếu thu gần nhất. Dữ liệu
    nhập sau thời điểm sao lưu không có trong bản khôi phục, phải nhập lại.
 
