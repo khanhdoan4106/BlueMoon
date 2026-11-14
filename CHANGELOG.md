@@ -17,6 +17,15 @@ dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/). Mã story
   tương ứng; tài khoản Thủ quỹ mẫu `thuquy`. Chỉ nạp một lần trên CSDL
   vừa dựng. Sinh bằng `scripts/sinh-seed-demo.py`; kiểm bằng `SeedDemoIT`
   (`docs/setup.md`, mục 5).
+
+## [v1.0.0] – 14/11/2026 – Sprint 4
+
+Bản phát hành đầu tiên đủ phạm vi v1.0: thống kê, báo cáo Excel, hộ nợ
+đọng, nhật ký thao tác, sao lưu và rà soát giao diện. Rà soát trước phát
+hành: [truoc-phat-hanh-v1.0.0.md](docs/review/truoc-phat-hanh-v1.0.0.md).
+
+### Thêm
+
 - **Nhật ký thao tác (TS-002, AC-068, AC-069):** mọi thao tác thay đổi dữ
   liệu quan trọng (lập/hủy phiếu thu, sửa số tiền phải nộp, tạo khoản thu tự
   nguyện, sửa đơn giá, chốt công nợ, thêm/sửa/chuyển đi hộ và nhân khẩu, đổi
@@ -142,14 +151,14 @@ root, dữ liệu cũ giữ nguyên. Khi MySQL bật binary log, tạo trigger c
 
 ### Kiểm thử
 
-366 test đơn vị và 69 kiểm thử tích hợp trên MySQL 8.0 (thêm `NhatKyIT`,
+366 test đơn vị và 62 kiểm thử tích hợp trên MySQL 8.0 (thêm `NhatKyIT`,
 `NhatKyServiceTest`, `ThaoTacTest`, `NoiDungNhatKyTest`, `ThongKeIT`,
 `ThongKeServiceTest`, `ThangTrucYTest`, `BieuDoThuPhiTest`, `DongTyLeTest`,
 `NoDongIT`, `NoDongServiceTest`, `TheHoConNoTest`, `BaoCaoThuIT`,
 `BaoCaoThuServiceTest`, `BaoCaoThuExcelTest`, `TamVangExcelTest`,
 `TepExcelTest`, `DanhSachTamVangTest`, `ScriptSaoLuuTest`, `SaoLuuIT`,
 `SuaSoTienDocKhoaIT`, `ThuMotHoNamBuocTest`, `DeDocTest`, `ChupManHinhTest`,
-`NguoiDungThanhMenuTest`, `TrangChinhSoLieuTest`, `SeedDemoIT`).
+`NguoiDungThanhMenuTest`, `TrangChinhSoLieuTest`).
 `ThuMotHoNamBuocTest` thu một hộ trên màn Thu phí thật bằng phím và chuột
 giả lập, đếm thao tác và kiểm tiêu điểm sau mỗi bước; `BoCucFxmlTest` kiểm
 thêm cỡ chữ ≥ 14 px, độ cao nút và ô, khoảng cách giữa nút; `ChupManHinhTest`
@@ -326,7 +335,8 @@ biến động. **Phải dựng lại CSDL** khi nâng từ `v0.1.0`.
 
 97 test JUnit 5; CI chạy `mvn verify` cho mỗi Pull Request.
 
-[Chưa phát hành]: https://github.com/khanhdoan4106/IT3180-CNPM-Project-Group-16/compare/v0.3.0...main
+[Chưa phát hành]: https://github.com/khanhdoan4106/IT3180-CNPM-Project-Group-16/compare/v1.0.0...main
+[v1.0.0]: https://github.com/khanhdoan4106/IT3180-CNPM-Project-Group-16/releases/tag/v1.0.0
 [v0.3.0]: https://github.com/khanhdoan4106/IT3180-CNPM-Project-Group-16/releases/tag/v0.3.0
 [v0.2.0]: https://github.com/khanhdoan4106/IT3180-CNPM-Project-Group-16/releases/tag/v0.2.0
 [v0.1.0]: https://github.com/khanhdoan4106/IT3180-CNPM-Project-Group-16/releases/tag/v0.1.0
