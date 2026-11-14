@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.bluemoon.config.Database;
 import com.bluemoon.dao.CongNoDaoImpl;
 import com.bluemoon.dao.DaoException;
 import com.bluemoon.dao.DotCuTruDaoImpl;
@@ -379,10 +378,15 @@ class NhatKyIT {
 
     // ---- chi them: MySQL chan UPDATE, DELETE ----
 
+    /**
+     * Thu bang user quan tri (du quyen UPDATE, DELETE) de chac chinh trigger
+     * chan, khong phai do thieu quyen; user ung dung con bi chan boi quyen
+     * (QuyenCsdlIT).
+     */
     @Test
     void mysqlTuChoiSuaVaXoaNhatKy() throws SQLException {
         int truoc = CsdlThu.dem("nhat_ky");
-        try (Connection c = Database.getConnection();
+        try (Connection c = CsdlThu.quanTri();
                 Statement st = c.createStatement()) {
             for (String lenh : List.of(
                     "UPDATE nhat_ky SET noi_dung = 'sửa lén'",
@@ -405,10 +409,11 @@ class NhatKyIT {
         CsdlThu.chayLaiSchema();
         CsdlThu.chayLaiSchema();
         assertEquals(truoc, CsdlThu.dem("nhat_ky"));
-        try (Connection c = Database.getConnection();
+        try (Connection c = CsdlThu.quanTri();
                 Statement st = c.createStatement()) {
-            assertThrows(SQLException.class,
+            SQLException e = assertThrows(SQLException.class,
                     () -> st.executeUpdate("DELETE FROM nhat_ky"));
+            assertEquals("45000", e.getSQLState());
         }
     }
 

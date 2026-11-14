@@ -117,10 +117,12 @@ class SaoLuuIT {
 
         thuMuc = Files.createTempDirectory("bluemoon-sao-luu-it");
         // Mat khau di qua tep tuy chon nhu script, khong qua dong lenh.
+        // Khoi phuc tao CSDL va trigger nen dung user quan tri (setup.md,
+        // muc 7), khong phai user ung dung.
         tepTuyChon = thuMuc.resolve("client.cnf");
         Files.writeString(tepTuyChon, "[client]\nhost=" + host + "\nport="
-                + cong + "\nuser=" + giaTri(cauHinh.getProperty("user"))
-                + "\npassword=" + giaTri(cauHinh.getProperty("password"))
+                + cong + "\nuser=" + giaTri(CsdlThu.userQuanTri())
+                + "\npassword=" + giaTri(CsdlThu.matKhauQuanTri())
                 + "\n", StandardCharsets.UTF_8);
         thucThi("DROP DATABASE IF EXISTS `" + csdlKhoiPhuc + "`");
     }
@@ -166,8 +168,9 @@ class SaoLuuIT {
         return null;
     }
 
+    /** Tao, xoa CSDL khoi phuc: viec cua user quan tri. */
     private static void thucThi(String sql) {
-        try (Connection c = Database.getConnection();
+        try (Connection c = CsdlThu.quanTri();
                 Statement st = c.createStatement()) {
             st.execute(sql);
         } catch (SQLException e) {
@@ -177,7 +180,7 @@ class SaoLuuIT {
 
     private Connection ketNoiKhoiPhuc() throws SQLException {
         return DriverManager.getConnection(urlKhoiPhuc,
-                cauHinh.getProperty("user"), cauHinh.getProperty("password"));
+                CsdlThu.userQuanTri(), CsdlThu.matKhauQuanTri());
     }
 
     /** Chay mot chuong trinh, tra ve ma thoat; loi ghi vao tep stderr. */

@@ -25,7 +25,7 @@ class SeedIT {
     @BeforeEach
     void chuanBi() throws SQLException {
         CsdlThu.dungLai();
-        try (Connection c = Database.getConnection();
+        try (Connection c = CsdlThu.quanTri();
                 Statement st = c.createStatement()) {
             // Bo tai khoan do CsdlThu them de kiem tai khoan mau cua seed.
             st.executeUpdate("DELETE FROM tai_khoan");
