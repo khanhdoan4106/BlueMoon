@@ -1,6 +1,7 @@
 package com.bluemoon.controller;
 
 import com.bluemoon.config.CauHinhException;
+import com.bluemoon.util.NhatKyLoi;
 import java.sql.SQLException;
 
 /**
@@ -31,12 +32,14 @@ final class LoiCsdl {
     }
 
     /**
-     * Thong bao ung voi loi.
+     * Thong bao ung voi loi. Loi duoc ghi vao log kem nguyen nhan goc (ma
+     * loi MySQL), vi nguoi dung chi thay cau thong bao chung.
      *
      * @param e loi tu tang config hoac DAO
      * @return thong bao hien cho nguoi dung
      */
     static String thongBao(RuntimeException e) {
+        NhatKyLoi.ghi("Loi CSDL", e);
         if (e instanceof CauHinhException) {
             return coLoiSql(e) ? MAT_KET_NOI : SAI_CAU_HINH;
         }
