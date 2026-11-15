@@ -37,6 +37,7 @@ chứng minh trên MySQL thật, vì DAO giả không tái hiện được.
 | `NoDongIT` | Hộ nợ đọng: khoản đã thu không tính, khoản trong phiếu đã hủy tính lại là nợ, khoản sửa về 0 đ và đóng góp tự nguyện không tính, hai khoản cùng tháng chỉ tính một tháng, hộ đã chuyển đi vẫn có (kèm chủ hộ cũ), tổng nợ, thứ tự (số tháng, tổng nợ, mã căn hộ), tóm tắt cho Trang chính |
 | `BaoCaoThuIT` | Báo cáo thu tháng: phiếu đã hủy không có (khoản chỉ có trong phiếu hủy không thành cột), ranh giới tháng (23:59:59 cuối tháng, 00:00:00 đầu tháng sau), chủ hộ, số biên lai, phiếu thu hai tháng phí dịch vụ cộng vào một cột, tháng chưa có phiếu bị từ chối, tệp ghi từ CSDL thật đọc lại được |
 | `SaoLuuIT` | Chạy `mysqldump` với đúng các tùy chọn đọc từ `scripts/sao-luu.ps1` trên dữ liệu đủ mọi bảng (hộ, nhân khẩu, tạm vắng, biến động, khoản thu, công nợ, phiếu thu đã hủy và chưa hủy, nhật ký), nạp vào CSDL mới tên khác bằng `mysql`: số dòng mọi bảng, tổng tiền phiếu thu, tên có dấu, cột sinh (`phai_nop_da_thu`, `chu_ho_cua`, `cccd_dang_o`, `ma_dang_o`) vẫn đúng và vẫn là cột sinh, `UNIQUE` trên cột sinh vẫn chặn, trigger vẫn chặn `UPDATE`/`DELETE` trên `nhat_ky`; tự bỏ qua kèm thông báo nếu máy không có `mysqldump`/`mysql` |
+| `QuyenCsdlIT` | User CSDL của ứng dụng chỉ có `SELECT, INSERT, UPDATE`: `DROP TRIGGER` hai trigger nhật ký, `DELETE`, `TRUNCATE`, `DROP TABLE` trên `nhat_ky`, `ALTER TABLE`, `CREATE TABLE`, `DELETE` trên bảng nghiệp vụ đều bị MySQL từ chối (lỗi 1142); `UPDATE nhat_ky` bị trigger chặn; `SHOW GRANTS` không có quyền nào khác. Cần user quản trị riêng (`BLUEMOON_DB_ADMIN_USER`); thiếu thì bỏ qua, riêng trên CI thì trượt |
 | `SeedDemoIT` | Dựng CSDL từ `schema.sql` + `seed.sql` + `seed-demo.sql`: 40 hộ, 114 nhân khẩu, một hộ đã chuyển đi, 6 người tạm trú; mỗi hộ đúng một chủ hộ, con nhỏ hơn bố mẹ ít nhất 18 tuổi; CCCD 12 chữ số, không trùng, có cho mọi người từ 14 tuổi; tổng mỗi phiếu khớp chi tiết, không phiếu ở tương lai hay trước khi chốt tháng của khoản, bộ đếm biên lai khớp; ít nhất 3 hộ nợ từ 3 tháng (có hộ đã chuyển đi); Trang chính đọc được 5 tháng trước có tiền, Nhật ký có dòng; chạy lại tệp không thêm gì |
 | `SeedIT` | Dựng CSDL từ `schema.sql`, chạy `seed.sql` ba lần: số dòng không đổi, tên có dấu (so trong Java, không dựa `=` của MySQL), hai quỹ mẫu đang mở, ba trường hợp tạm trú/tạm vắng |
 
@@ -55,6 +56,11 @@ không có chữ `test`, để không xóa nhầm CSDL `bluemoon` đang dùng.
 Kết quả mong đợi: `BUILD SUCCESS`, 366 test (1 bỏ qua: `ChupManHinhTest`
 chỉ chạy khi có `-DchupAnh`). `mvn verify` không có
 `-Pmysql` không chạy lớp `*IT`.
+
+`mvn verify` còn chạy Checkstyle sau khi test xong: dòng Java quá 80 cột
+hoặc có ký tự tab thì `BUILD FAILURE` kèm tệp và số dòng
+([quy ước mã](design/coding-convention.md#kiểm-tự-động)). Chỉ kiểm định
+dạng: `mvn checkstyle:check@quy-uoc-ma`.
 
 Chạy riêng test bố cục sau khi sửa FXML hoặc CSS:
 
@@ -75,17 +81,22 @@ mvn test -Dtest=ChupManHinhTest,ThuMotHoNamBuocTest,TrangChinhSoLieuTest -DchupA
    CSDL đó:
    ```sql
    CREATE DATABASE bluemoon_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-   GRANT ALL ON bluemoon_test.* TO 'bluemoon'@'localhost';
+   GRANT SELECT, INSERT, UPDATE ON bluemoon_test.* TO 'bluemoon'@'localhost';
    ```
-2. Đặt biến môi trường (PowerShell) rồi chạy:
+2. Đặt biến môi trường (PowerShell) rồi chạy. DAO và Service chạy bằng user
+   ứng dụng (quyền tối thiểu như trên); bảng, trigger và seed do user quản
+   trị ở `BLUEMOON_DB_ADMIN_USER` tạo (chi tiết:
+   [setup.md](setup.md#4-chạy-test)):
    ```powershell
    $env:BLUEMOON_DB_URL = "jdbc:mysql://localhost:3306/bluemoon_test?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh&characterEncoding=UTF-8"
+   $env:BLUEMOON_DB_ADMIN_USER = "root"
+   $env:BLUEMOON_DB_ADMIN_PASSWORD = "mat_khau_root"
    mvn verify -Pmysql
    ```
-   Nếu user không phải `bluemoon`, đặt thêm `BLUEMOON_DB_USER` và
+   Nếu user ứng dụng không phải `bluemoon`, đặt thêm `BLUEMOON_DB_USER` và
    `BLUEMOON_DB_PASSWORD`.
 
-Kết quả mong đợi: 366 test đơn vị và 69 kiểm thử tích hợp đều đạt (MySQL
+Kết quả mong đợi: 366 test đơn vị và 73 kiểm thử tích hợp đều đạt (MySQL
 8.0). Hai test cấu hình (`DatabaseConfigTest`) tự bỏ qua khi đã đặt
 `BLUEMOON_DB_*`, nên log hiện "Skipped: 2" ở lần chạy này.
 
@@ -98,7 +109,7 @@ hai xanh:
 | Job | Làm gì |
 |---|---|
 | `build` | JDK 21, `mvn -B verify`: test đơn vị và test bố cục; `pwsh src/test/scripts/kiem-thu-sao-luu.ps1` |
-| `build-mysql` | Service `mysql:8.0`, CSDL `bluemoon_test`, `mvn -B verify -Pmysql`: thêm 69 kiểm thử tích hợp; rồi chạy thật `scripts/sao-luu.ps1` trên CSDL dựng từ `schema.sql`, `seed.sql` và hai phiếu thu mẫu (một phiếu đã hủy; tệp tùy chọn tạo trong `RUNNER_TEMP`), `scripts/khoi-phuc-thu.ps1` trên tệp vừa tạo (phải `KHỚP`, rồi sửa nguồn thêm 100.000 đ cho cùng chữ số đầu và phải báo lệch tổng tiền, mã 1), và một lần sao lưu với mật khẩu sai (mã thoát khác 0, dòng `LỖI`, không còn tệp dở, giữ bản cũ) |
+| `build-mysql` | Service `mysql:8.0`, CSDL `bluemoon_test`, `mvn -B verify -Pmysql`: thêm 73 kiểm thử tích hợp, DAO chạy bằng user `bluemoon_app` chỉ có `SELECT, INSERT, UPDATE`, bảng và trigger do root tạo; rồi chạy thật `scripts/sao-luu.ps1` trên CSDL dựng từ `schema.sql`, `seed.sql` và hai phiếu thu mẫu (một phiếu đã hủy; tệp tùy chọn tạo trong `RUNNER_TEMP`), `scripts/khoi-phuc-thu.ps1` trên tệp vừa tạo (phải `KHỚP`, rồi sửa nguồn thêm 100.000 đ cho cùng chữ số đầu và phải báo lệch tổng tiền, mã 1), và một lần sao lưu với mật khẩu sai (mã thoát khác 0, dòng `LỖI`, không còn tệp dở, giữ bản cũ) |
 
 ## 3. Số test hiện tại
 
@@ -115,6 +126,7 @@ hai xanh:
 | Sprint 4, sau sửa đọc có khóa trong `suaSoTien` (chưa phát hành) | 350 | 62 |
 | `v1.0.0` (Sprint 4, sau TS-004) | 366 | 62 |
 | Sau dữ liệu demo `seed-demo.sql` (chưa phát hành) | 366 | 69 |
+| Sau tách user CSDL, `QuyenCsdlIT` (chưa phát hành) | 366 | 73 |
 
 ## 4. Ánh xạ AC → test tự động
 
@@ -238,7 +250,7 @@ Khác ở Sprint 3, không gắn một AC riêng: chặn thu trùng và deadlock
 | AC | Test tự động | Kết quả |
 |---|---|---|
 | AC-068 ghi nhật ký người sửa, nội dung, thời điểm | `NhatKyIT#hoGiaDinhGhiThemSuaChuyenDiVaChiGhiTruongThucSuDoi`, `#nhanKhauGhiThemSuaChuyenDiDoiChuHoVaDotCuTru`, `#khoanThuCongNoVaPhieuThuGhiDungNguoiLam`, `#taiKhoanGhiTaoDoiVaiTroKhoaMoKhoaDatLaiKhongGhiMatKhau`, `#thaoTacXungDotHoacTrungKhoaKhongDeLaiDong`, `#ghiNhatKyLoiThiThaoTacCungHoanTac`, `#thoiDiemLaGioVietNam`, `ThaoTacTest#maKhopRangBuocCheckTrongSchema`, `NoiDungNhatKyTest#chiGhiTruongThucSuDoi` | ✓ |
-| AC-069 xem theo thời gian, không sửa/xóa | `NhatKyServiceTest#thuQuyBiTuChoi`, `#locTheoKhoangNgayVaLoaiThaoTac`, `#tuNgaySauDenNgayBaoLoi`, `#thieuNgayBaoLoi`, `NhatKyIT#locTheoKhoangNgayVaLoaiThaoTacMoiNhatTruoc`, `#mysqlTuChoiSuaVaXoaNhatKy`, `#chayLaiSchemaKhongMatNhatKyVaVanChanSua`, `BoCucFxmlTest#khongCoChuBiCat` cho tab "Nhật ký thao tác" của `tai-khoan.fxml` | ◐ tab chỉ hiện với Quản trị viên kiểm tay |
+| AC-069 xem theo thời gian, không sửa/xóa | `NhatKyServiceTest#thuQuyBiTuChoi`, `#locTheoKhoangNgayVaLoaiThaoTac`, `#tuNgaySauDenNgayBaoLoi`, `#thieuNgayBaoLoi`, `NhatKyIT#locTheoKhoangNgayVaLoaiThaoTacMoiNhatTruoc`, `#mysqlTuChoiSuaVaXoaNhatKy`, `#chayLaiSchemaKhongMatNhatKyVaVanChanSua`, `QuyenCsdlIT#userUngDungKhongGoDuocTriggerNhatKy`, `#userUngDungKhongXoaDuocNhatKy`, `#userUngDungKhongDoiDuocCauTrucVaKhongXoaCung`, `#quyenCuaUserUngDungChiGomDocThemSua`, `BoCucFxmlTest#khongCoChuBiCat` cho tab "Nhật ký thao tác" của `tai-khoan.fxml` | ◐ tab chỉ hiện với Quản trị viên kiểm tay |
 
 | AC-046 tổng đã thu trong tháng ở Trang chính | `ThongKeServiceTest#tongQuanThangHienTaiCoTyLeKhiDaChot`, `#sauThangCoThangTrongBangKhongVaChiMotLanDoc`, `#caHaiVaiTroDeuXemDuocNguoiKhacBiTuChoi`, `ThongKeIT#phieuDaHuyKhongTinh`, `#ranhGioiThang`, `#noThangTruocDongThangNayTinhThangNay`, `#sauThangCoThangTrong`, `DongTyLeTest#daChotHienPhanTram`, `#chuaChotBaoRo`, `ThangTrucYTest#mauFigma`, `#moiGiaTriNamTrongThangMocTron`, `BieuDoThuPhiTest#coTenHaiTrucVaNhanThang`, `#trucYBatDauTuKhongTheoMocTronCoLuoiNgang`, `#cotThangHienTaiKhacKieu`, `#soLieuTrenDauCot` | ◐ Trang chính với dữ liệu thật xem bằng mắt |
 | AC-047 tháng chưa có giao dịch thì 0 | `ThongKeServiceTest#thangKhongCoGiaoDichLaKhong`, `ThangTrucYTest#toanKhongVanCoThangMacDinh`, `BieuDoThuPhiTest#toanKhongVanVeTruc`, `ThongKeIT#phieuDaHuyKhongTinh` | ✓ |

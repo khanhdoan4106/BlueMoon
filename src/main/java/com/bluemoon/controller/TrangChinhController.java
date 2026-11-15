@@ -207,7 +207,8 @@ public class TrangChinhController {
                     + " chưa kết thúc, số liệu tính đến hôm nay.");
         } catch (NghiepVuException | CauHinhException | DaoException e) {
             daThuLabel.setText("–");
-            tyLeLabel.setText("Chưa đọc được số liệu. Bấm BlueMoon để thử lại.");
+            tyLeLabel.setText(
+                    "Chưa đọc được số liệu. Bấm BlueMoon để thử lại.");
         }
         try {
             TomTatNo no = new NoDongService(new NoDongDaoImpl()).tomTat(tk);
@@ -215,7 +216,8 @@ public class TrangChinhController {
             noDongLabel.setText(dongNoDong(no));
         } catch (NghiepVuException | CauHinhException | DaoException e) {
             soHoNoLabel.setText("–");
-            noDongLabel.setText("Chưa đọc được số liệu. Bấm BlueMoon để thử lại.");
+            noDongLabel.setText(
+                    "Chưa đọc được số liệu. Bấm BlueMoon để thử lại.");
         }
     }
 

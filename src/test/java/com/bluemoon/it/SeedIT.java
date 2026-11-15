@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.bluemoon.config.Database;
+import com.bluemoon.dao.DongHoCsdl;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -22,10 +23,19 @@ import org.junit.jupiter.api.Test;
  */
 class SeedIT {
 
+    /**
+     * "Hôm nay" theo giờ Việt Nam, như CURDATE() của seed.sql (phiên MySQL
+     * đặt +07:00). Không dùng múi giờ của JVM: máy CI chạy UTC nên từ 0 đến
+     * 7 giờ sáng giờ Việt Nam hai bên lệch nhau một ngày.
+     */
+    private static LocalDate homNayVietNam() {
+        return LocalDate.now(DongHoCsdl.VN);
+    }
+
     @BeforeEach
     void chuanBi() throws SQLException {
         CsdlThu.dungLai();
-        try (Connection c = Database.getConnection();
+        try (Connection c = CsdlThu.quanTri();
                 Statement st = c.createStatement()) {
             // Bo tai khoan do CsdlThu them de kiem tai khoan mau cua seed.
             st.executeUpdate("DELETE FROM tai_khoan");
@@ -93,13 +103,13 @@ class SeedIT {
                 + "'TU_NGUYEN' AND CURDATE() BETWEEN tu_ngay AND den_ngay "
                 + "ORDER BY ten");
         assertEquals(List.of("Quỹ biển đảo", "Quỹ vì người nghèo "
-                + LocalDate.now().getYear()), quy);
+                + homNayVietNam().getYear()), quy);
     }
 
     @Test
     void baTruongHopTamTruTamVangVaLichSuTamTru() throws SQLException {
         CsdlThu.chaySeed();
-        LocalDate homNay = LocalDate.now();
+        LocalDate homNay = homNayVietNam();
         assertEquals(homNay.plusDays(120), LocalDate.parse(
                 cot(DEN_NGAY, "036093004321").get(0)));
         assertTrue(LocalDate.parse(cot(DEN_NGAY, "034199008765").get(0))
