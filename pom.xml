@@ -91,6 +91,27 @@
                     <mainClass>com.bluemoon.App</mainClass>
                 </configuration>
             </plugin>
+            <!-- Quy uoc ma (docs/design/coding-convention.md): dong toi da
+                 80 cot, khong dung tab. "mvn verify" truot neu vi pham. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>3.6.0</version>
+                <configuration>
+                    <configLocation>config/checkstyle.xml</configLocation>
+                    <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                    <consoleOutput>true</consoleOutput>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>quy-uoc-ma</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 

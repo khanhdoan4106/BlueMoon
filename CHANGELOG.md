@@ -8,6 +8,22 @@ dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/). Mã story
 
 ## [Chưa phát hành]
 
+### Bảo mật
+
+- **Tách user CSDL (NFR-004, AC-069; rà soát phi chức năng, mục P1):** user
+  MySQL của ứng dụng chỉ còn `SELECT, INSERT, UPDATE` trên `bluemoon.*`,
+  thay cho `GRANT ALL`. Trước đây ai có mật khẩu trong
+  `config/db.properties` gỡ được trigger của `nhat_ky` rồi xóa nhật ký;
+  nay `DROP TRIGGER`, `DELETE`, `TRUNCATE`, `ALTER`, `DROP TABLE` đều bị
+  MySQL từ chối. `schema.sql`, `seed.sql`, `seed-demo.sql` và khôi phục
+  sao lưu chạy bằng root. Mã ứng dụng không đổi. **Máy đã cài:** root chạy
+  `REVOKE ALL PRIVILEGES ON bluemoon.* FROM 'bluemoon'@'localhost';` rồi
+  `GRANT SELECT, INSERT, UPDATE ON bluemoon.* TO 'bluemoon'@'localhost';`
+  (`docs/setup.md`, mục 2).
+- Kiểm thử tích hợp và CI chạy DAO bằng user quyền tối thiểu; bảng, trigger
+  và seed do user quản trị tạo (`BLUEMOON_DB_ADMIN_USER`,
+  `BLUEMOON_DB_ADMIN_PASSWORD`). Thêm `QuyenCsdlIT` (4 test).
+
 ### Thêm
 
 - **Dữ liệu demo (`database/seed-demo.sql`):** chạy sau `schema.sql` +
@@ -17,6 +33,14 @@ dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/). Mã story
   tương ứng; tài khoản Thủ quỹ mẫu `thuquy`. Chỉ nạp một lần trên CSDL
   vừa dựng. Sinh bằng `scripts/sinh-seed-demo.py`; kiểm bằng `SeedDemoIT`
   (`docs/setup.md`, mục 5).
+
+### Thay đổi
+
+- **Checkstyle trong `mvn verify` (quy ước mã):** kiểm mỗi dòng Java tối đa
+  80 cột (đếm theo ký tự) và không dùng tab, cho cả `src/main` và
+  `src/test`; CI trượt nếu vi phạm. Cấu hình ở `config/checkstyle.xml`.
+  Ngắt 9 dòng đang dài 81 – 88 cột (4 ở mã chính, 5 ở test), không đổi
+  logic hay chữ hiển thị.
 
 ## [v1.0.0] – 14/11/2026 – Sprint 4
 

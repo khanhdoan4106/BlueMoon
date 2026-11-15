@@ -588,7 +588,8 @@ public class ThuPhiController {
         ButtonType huy = new ButtonType("Hủy phiếu",
                 ButtonBar.ButtonData.OK_DONE);
         HopThoai.datNutChinhVaDong(d, huy);
-        d.getDialogPane().lookupButton(huy).getStyleClass().add("nut-nguy-hiem");
+        d.getDialogPane().lookupButton(huy).getStyleClass()
+                .add("nut-nguy-hiem");
         Label nhan = new Label("Lý do hủy (bắt buộc)");
         nhan.getStyleClass().add("tieu-de-form");
         TextField lyDo = new TextField();

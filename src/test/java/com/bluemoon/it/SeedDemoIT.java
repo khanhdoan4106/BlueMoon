@@ -41,7 +41,7 @@ class SeedDemoIT {
     @BeforeEach
     void chuanBi() throws SQLException {
         CsdlThu.dungLai();
-        try (Connection c = Database.getConnection();
+        try (Connection c = CsdlThu.quanTri();
                 Statement st = c.createStatement()) {
             // Bo tai khoan gia cua CsdlThu de seed.sql tao admin that.
             st.executeUpdate("DELETE FROM tai_khoan");

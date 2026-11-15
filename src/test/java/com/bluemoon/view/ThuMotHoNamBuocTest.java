@@ -141,7 +141,8 @@ class ThuMotHoNamBuocTest {
         String thuMuc = System.getProperty("chupAnh");
         if (thuMuc != null) {
             var anh = FxTest.chay(() -> m.scene().snapshot(null));
-            java.nio.file.Files.createDirectories(java.nio.file.Path.of(thuMuc));
+            java.nio.file.Files.createDirectories(
+                    java.nio.file.Path.of(thuMuc));
             ChupManHinhTest.ghiPng(anh, java.nio.file.Path.of(thuMuc,
                     System.getProperty("chupTienTo", "anh")
                             + "-thu-phi-da-tra-cuu.png"));
