@@ -1,5 +1,6 @@
 package com.bluemoon.dao;
 
+import com.bluemoon.model.CongNoThang;
 import java.math.BigDecimal;
 import java.time.YearMonth;
 import java.util.List;
@@ -22,6 +23,19 @@ public interface ThongKeDao {
      *         không có trong bảng
      */
     Map<YearMonth, BigDecimal> thuTheoThang(YearMonth tuThang,
+            YearMonth denThang);
+
+    /**
+     * Công nợ các khoản bắt buộc của từng tháng đã chốt, chia thu đúng hạn,
+     * thu trễ hạn (giả định 46: hạn nộp là ngày cuối tháng được chốt) và
+     * số hộ đã đóng đủ, trong một truy vấn GROUP BY.
+     *
+     * @param tuThang tháng đầu
+     * @param denThang tháng cuối (tính cả tháng này)
+     * @return tháng đã chốt -&gt; công nợ; tháng chưa chốt thì không có
+     *         trong bảng
+     */
+    Map<YearMonth, CongNoThang> congNoTheoThang(YearMonth tuThang,
             YearMonth denThang);
 
     /**

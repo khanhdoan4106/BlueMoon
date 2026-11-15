@@ -9,11 +9,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.bluemoon.dao.KhoanPhiDao;
 import com.bluemoon.dao.ThongKeDao;
 import com.bluemoon.model.CachTinhPhi;
+import com.bluemoon.model.CongNoThang;
 import com.bluemoon.model.KhoanPhi;
 import com.bluemoon.model.LoaiKhoanPhi;
 import com.bluemoon.model.TaiKhoan;
 import com.bluemoon.model.ThongKeKhoan;
-import com.bluemoon.model.ThuThang;
 import com.bluemoon.model.TrangThaiKhoanPhi;
 import com.bluemoon.model.VaiTro;
 import java.math.BigDecimal;
@@ -56,16 +56,31 @@ class ThongKeServiceTest {
         private final Map<YearMonth, BigDecimal> thu = new HashMap<>();
         private final Map<YearMonth, TyLeThu> tyLe = new HashMap<>();
         private final List<YearMonth> daChot = new ArrayList<>();
+        private final Map<YearMonth, CongNoThang> congNo = new HashMap<>();
         private int soLanTheoThang;
+        private int soLanCongNo;
         private YearMonth tu;
         private YearMonth den;
+
+        @Override
+        public Map<YearMonth, CongNoThang> congNoTheoThang(
+                YearMonth tuThang, YearMonth denThang) {
+            soLanCongNo++;
+            tu = tuThang;
+            den = denThang;
+            Map<YearMonth, CongNoThang> kq = new HashMap<>();
+            congNo.forEach((t, v) -> {
+                if (!t.isBefore(tuThang) && !t.isAfter(denThang)) {
+                    kq.put(t, v);
+                }
+            });
+            return kq;
+        }
 
         @Override
         public Map<YearMonth, BigDecimal> thuTheoThang(YearMonth tuThang,
                 YearMonth denThang) {
             soLanTheoThang++;
-            tu = tuThang;
-            den = denThang;
             Map<YearMonth, BigDecimal> kq = new HashMap<>();
             thu.forEach((t, v) -> {
                 if (!t.isBefore(tuThang) && !t.isAfter(denThang)) {
@@ -198,23 +213,40 @@ class ThongKeServiceTest {
         assertNull(tq.phanTram());
     }
 
+    /** Giả định 46: 6 tháng công nợ, tháng chưa chốt vẫn có chỗ. */
     @Test
-    void sauThangCoThangTrongBangKhongVaChiMotLanDoc() {
-        dao.thu.put(YearMonth.of(2026, 7), new BigDecimal("205000000"));
+    void congNoSauThangCoThangChuaChotVaChiMotLanDoc() {
+        YearMonth t7 = YearMonth.of(2026, 7);
+        CongNoThang c7 = new CongNoThang(t7, true,
+                new BigDecimal("36642480"), new BigDecimal("27082200"),
+                new BigDecimal("4929240"), 30, 37);
+        CongNoThang c11 = new CongNoThang(T11, true,
+                new BigDecimal("39367080"), new BigDecimal("22615560"),
+                BigDecimal.ZERO, 22, 39);
+        dao.congNo.put(t7, c7);
+        dao.congNo.put(T11, c11);
+        dao.congNo.put(YearMonth.of(2026, 5), new CongNoThang(
+                YearMonth.of(2026, 5), true, BigDecimal.TEN, BigDecimal.ONE,
+                BigDecimal.ZERO, 0, 1));
+        // The "Da thu thang nay" van theo ngay thu (gia dinh 24).
         dao.thu.put(T11, new BigDecimal("186000000"));
-        dao.thu.put(YearMonth.of(2026, 5), new BigDecimal("999"));
-        List<ThuThang> ds = service.tongQuan(QT).sauThang();
-        assertEquals(1, dao.soLanTheoThang, "Một truy vấn cho 6 tháng");
+        dao.thu.put(YearMonth.of(2026, 10), new BigDecimal("999"));
+
+        ThongKeService.TongQuan tq = service.tongQuan(QT);
+
+        assertEquals(1, dao.soLanCongNo, "Một truy vấn cho 6 tháng");
+        assertEquals(1, dao.soLanTheoThang);
         assertEquals(YearMonth.of(2026, 6), dao.tu);
         assertEquals(T11, dao.den);
+        assertEquals(new BigDecimal("186000000"), tq.daThu());
         assertEquals(List.of(
-                new ThuThang(YearMonth.of(2026, 6), BigDecimal.ZERO),
-                new ThuThang(YearMonth.of(2026, 7),
-                        new BigDecimal("205000000")),
-                new ThuThang(YearMonth.of(2026, 8), BigDecimal.ZERO),
-                new ThuThang(YearMonth.of(2026, 9), BigDecimal.ZERO),
-                new ThuThang(YearMonth.of(2026, 10), BigDecimal.ZERO),
-                new ThuThang(T11, new BigDecimal("186000000"))), ds);
+                CongNoThang.chuaChot(YearMonth.of(2026, 6)), c7,
+                CongNoThang.chuaChot(YearMonth.of(2026, 8)),
+                CongNoThang.chuaChot(YearMonth.of(2026, 9)),
+                CongNoThang.chuaChot(YearMonth.of(2026, 10)), c11),
+                tq.congNo());
+        assertEquals(87, tq.congNo().get(1).phanTram());
+        assertEquals(57, tq.congNo().get(5).phanTram());
     }
 
     @Test

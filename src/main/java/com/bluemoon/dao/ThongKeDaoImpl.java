@@ -1,6 +1,7 @@
 package com.bluemoon.dao;
 
 import com.bluemoon.config.Database;
+import com.bluemoon.model.CongNoThang;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.Date;
@@ -44,6 +45,34 @@ public class ThongKeDaoImpl implements ThongKeDao {
             + "AND pn.so_tien > 0 "
             + "LEFT JOIN " + DA_THU + " ON da.phai_nop_id = pn.id "
             + "WHERE d.thang = ? GROUP BY d.id";
+
+    /**
+     * Mỗi khoản phải nộp lớn hơn 0 đ của khoản bắt buộc nối với dòng phiếu
+     * còn hiệu lực của nó (phai_nop_da_thu là UNIQUE nên tối đa một dòng)
+     * và phiếu chưa hủy. Phiếu lập trước 0 giờ ngày đầu tháng sau là đúng
+     * hạn (giả định 46). Cộng theo so_tien của khoản phải nộp nên đúng hạn
+     * + trễ hạn + còn nợ luôn bằng phải nộp.
+     */
+    private static final String SQL_CONG_NO = "SELECT d.thang, "
+            + "COALESCE(SUM(pn.so_tien), 0) AS phai_nop, "
+            + "COALESCE(SUM(CASE WHEN pt.thoi_diem < "
+            + "DATE_ADD(d.thang, INTERVAL 1 MONTH) THEN pn.so_tien END), 0) "
+            + "AS dung_han, "
+            + "COALESCE(SUM(CASE WHEN pt.thoi_diem >= "
+            + "DATE_ADD(d.thang, INTERVAL 1 MONTH) THEN pn.so_tien END), 0) "
+            + "AS tre_han, "
+            + "COUNT(DISTINCT pn.ho_id) AS tong_ho, "
+            + "COUNT(DISTINCT CASE WHEN pn.id IS NOT NULL AND pt.id IS NULL "
+            + "THEN pn.ho_id END) AS ho_con_no "
+            + "FROM dot_thu d "
+            + "LEFT JOIN phai_nop pn ON pn.dot_thu_id = d.id "
+            + "AND pn.so_tien > 0 AND EXISTS (SELECT 1 FROM khoan_phi k "
+            + "WHERE k.id = pn.khoan_phi_id AND k.loai = 'BAT_BUOC') "
+            + "LEFT JOIN phieu_thu_chi_tiet ct "
+            + "ON ct.phai_nop_da_thu = pn.id "
+            + "LEFT JOIN phieu_thu pt ON pt.id = ct.phieu_thu_id "
+            + "AND pt.da_huy = FALSE "
+            + "WHERE d.thang >= ? AND d.thang <= ? GROUP BY d.id, d.thang";
 
     private static final String SQL_THANG_DA_CHOT =
             "SELECT thang FROM dot_thu ORDER BY thang DESC";
@@ -96,6 +125,32 @@ public class ThongKeDaoImpl implements ThongKeDao {
             return kq;
         } catch (SQLException e) {
             throw new DaoException("Loi doc tong thu theo thang", e);
+        }
+    }
+
+    @Override
+    public Map<YearMonth, CongNoThang> congNoTheoThang(YearMonth tuThang,
+            YearMonth denThang) {
+        Map<YearMonth, CongNoThang> kq = new LinkedHashMap<>();
+        try (Connection conn = Database.getConnection();
+                PreparedStatement ps = conn.prepareStatement(SQL_CONG_NO)) {
+            ps.setDate(1, Date.valueOf(tuThang.atDay(1)));
+            ps.setDate(2, Date.valueOf(denThang.atDay(1)));
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    YearMonth t = YearMonth.from(
+                            rs.getDate("thang").toLocalDate());
+                    int tongHo = rs.getInt("tong_ho");
+                    kq.put(t, new CongNoThang(t, true,
+                            rs.getBigDecimal("phai_nop"),
+                            rs.getBigDecimal("dung_han"),
+                            rs.getBigDecimal("tre_han"),
+                            tongHo - rs.getInt("ho_con_no"), tongHo));
+                }
+            }
+            return kq;
+        } catch (SQLException e) {
+            throw new DaoException("Loi doc cong no theo thang", e);
         }
     }
 
