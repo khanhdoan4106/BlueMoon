@@ -51,11 +51,17 @@ Kiểm tra ở hai lớp (NFR-002, NFR-009):
    chặn cả khi màn hình mở bằng đường khác (AC-062).
 
 Mọi hàm public của Service nhận `TaiKhoan nguoi` và gọi
-`PhanQuyen.yeuCau`, trừ năm hàm: `TaiKhoanService.dangNhap` và
-`TaiKhoanService.lamMoiPhien` (chạy khi chưa có hoặc đang kiểm tra lại
-phiên), `CongNoService.thangHienTai` và `ThongKeService.thangHienTai` (chỉ
-đọc đồng hồ, không đọc dữ liệu nghiệp vụ), `ThuPhiService.kiemTraHinhThuc` (hàm tĩnh, chỉ kiểm tra dữ liệu
-nhập, không đọc dữ liệu).
+`PhanQuyen.yeuCau`, trừ bảy hàm không đọc dữ liệu nghiệp vụ:
+
+| Hàm | Vì sao không kiểm quyền |
+|---|---|
+| `TaiKhoanService.dangNhap`, `TaiKhoanService.lamMoiPhien` | Chạy khi chưa có phiên, hoặc đang kiểm tra lại phiên |
+| `CongNoService.thangHienTai`, `ThongKeService.thangHienTai`, `BaoCaoThuService.thangHienTai` | Chỉ đọc đồng hồ |
+| `NhatKyService.tuNgayMacDinh` | Hàm tĩnh, chỉ tính ngày mặc định của bộ lọc từ ngày được truyền vào |
+| `ThuPhiService.kiemTraHinhThuc` | Hàm tĩnh, chỉ kiểm tra dữ liệu nhập |
+
+Thêm hàm public mới vào một lớp Service mà không gọi `PhanQuyen.yeuCau` thì
+thêm một dòng vào bảng này kèm lý do.
 
 | Chức năng | Quản trị viên | Thủ quỹ | Căn cứ |
 |---|---|---|---|
