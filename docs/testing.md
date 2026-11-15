@@ -57,6 +57,11 @@ Kết quả mong đợi: `BUILD SUCCESS`, 366 test (1 bỏ qua: `ChupManHinhTest
 chỉ chạy khi có `-DchupAnh`). `mvn verify` không có
 `-Pmysql` không chạy lớp `*IT`.
 
+`mvn verify` còn chạy Checkstyle sau khi test xong: dòng Java quá 80 cột
+hoặc có ký tự tab thì `BUILD FAILURE` kèm tệp và số dòng
+([quy ước mã](design/coding-convention.md#kiểm-tự-động)). Chỉ kiểm định
+dạng: `mvn checkstyle:check@quy-uoc-ma`.
+
 Chạy riêng test bố cục sau khi sửa FXML hoặc CSS:
 
 ```
