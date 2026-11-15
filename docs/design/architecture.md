@@ -98,13 +98,29 @@ hộ, các khoản chưa đóng, các quỹ tự nguyện đang mở.
 | Tra cứu, thu phí, đóng góp, biên lai, hủy phiếu | US-007, US-010 – US-014 | `ThuPhiController`, `thu-phi.fxml`, `TomTatPhieuHomNay`, `HopThoai`, `MauIn`, `InAn` | `ThuPhiService` | `PhieuThuDao`, `KhoanPhiDao` | `ThuPhiServiceTest`, `SoTienTest`, `MauInTest`, `TomTatPhieuHomNayTest`, `HopThoaiHuyPhieuTest`, `DangBiKhoaExceptionTest`, `DongHoCsdlTest`, `PhieuThuIT`, `DongHoCsdlIT` |
 | Thông báo phí hằng tháng | US-015 | `CongNoController` (nút "In thông báo phí"), `MauIn` | `ThongBaoPhiService` | `PhieuThuDao`, `CongNoDao` | `ThongBaoPhiServiceTest`, `MauInTest`, `PhieuThuIT` |
 | Danh sách nhân khẩu tạm vắng (xem, in, xuất Excel) | US-004 | `NhanKhauController`, `DanhSachTamVang`, `MauIn` | `BaoCaoNhanKhauService`, `TamVangExcel`, `TepExcel` | `BaoCaoNhanKhauDao` | `BaoCaoNhanKhauServiceTest`, `TamVangExcelTest`, `DanhSachTamVangTest`, `MauInTest`, `PhieuThuIT` |
-| Báo lỗi không lường trước | – | `App`, `LoiKhongMongDoi`, `LoiCsdl` | – | – | `LoiKhongMongDoiTest`, `LoiCsdlTest` |
+| Báo lỗi không lường trước, log lỗi | – | `App`, `LoiKhongMongDoi`, `LoiCsdl`, `NhatKyLoi` | – | – | `LoiKhongMongDoiTest`, `LoiCsdlTest`, `GhiLogLoiTest` |
 | Sao lưu, khôi phục thử | TS-001 | – (chạy ngoài ứng dụng) | – | `scripts/sao-luu.ps1`, `khoi-phuc-thu.ps1`, `dang-ky-lich-sao-luu.ps1`, `mysql-chung.ps1` gọi `mysqldump`, `mysql` | `ScriptSaoLuuTest`, `SaoLuuIT`, `src/test/scripts/kiem-thu-sao-luu.ps1` |
 | Dữ liệu mẫu | US-001 – US-003, US-005, US-006, US-027 | – | – | `database/seed.sql` | `SeedIT` |
 | Bố cục các màn hình | NFR-008 | 9 tệp FXML, `giao-dien.css` | – | – | `BoCucFxmlTest` |
 
 Thêm chức năng mới thì thêm một dòng vào bảng này trong cùng Pull Request.
 Chiến lược kiểm thử và bảng AC → test: [../testing.md](../testing.md).
+
+## Log lỗi kỹ thuật
+
+Người dùng chỉ thấy câu thông báo chung ("Có lỗi khi đọc hoặc lưu dữ
+liệu"…), không thấy chi tiết kỹ thuật. Nguyên nhân gốc được ghi bằng
+`java.util.logging` (có sẵn trong JDK, không thêm thư viện) qua
+`NhatKyLoi.ghi`: ra console và tệp `bluemoon.log` ở thư mục chạy ứng dụng
+(tối đa 1 MB, đầy thì ghi lại từ đầu). Hai chỗ ghi, phủ mọi lỗi:
+
+- `LoiCsdl.thongBao`: mọi khối `catch (CauHinhException | DaoException e)`
+  của Controller đều gọi hàm này để lấy câu thông báo, nên lỗi CSDL nào
+  cũng được ghi kèm `SQLException` gốc;
+- `LoiKhongMongDoi` (bộ xử lý lỗi chưa bắt): ghi các lỗi còn lại.
+
+Không tạo được tệp log thì ứng dụng vẫn chạy, log chỉ ra console. Log này
+khác nhật ký thao tác dưới đây: nó ghi lỗi kỹ thuật, không ghi nghiệp vụ.
 
 ## Nhật ký thao tác
 

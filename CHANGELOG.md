@@ -10,6 +10,12 @@ dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/). Mã story
 
 ### Thêm
 
+- **Log lỗi kỹ thuật (rà soát phi chức năng, mục P2):** khi ứng dụng báo
+  "Có lỗi khi đọc hoặc lưu dữ liệu", "Không kết nối được cơ sở dữ liệu"
+  hay "Có lỗi không mong muốn", nguyên nhân gốc (mã lỗi MySQL, stack
+  trace) được ghi ra console và tệp `bluemoon.log` ở thư mục chạy ứng
+  dụng. Trước đây 44 chỗ bắt lỗi CSDL chỉ hiện câu thông báo, không ghi
+  lại gì. Thông báo cho người dùng không đổi (`docs/setup.md`, mục 6).
 - **Dữ liệu demo (`database/seed-demo.sql`):** chạy sau `schema.sql` +
   `seed.sql` trên máy demo: 36 hộ, 105 nhân khẩu hư cấu, tạm trú/tạm
   vắng, đổi chủ hộ, một hộ đã chuyển đi, 6 tháng chốt công nợ và khoảng
