@@ -48,6 +48,14 @@ dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/). Mã story
   Ngắt 9 dòng đang dài 81 – 88 cột (4 ở mã chính, 5 ở test), không đổi
   logic hay chữ hiển thị.
 
+### Sửa
+
+- **Múi giờ khi chạy `mvn javafx:run` (rà soát phi chức năng, mục P8):**
+  lệnh này chạy thẳng `App`, bỏ qua `Launcher`, nên trên máy đặt múi giờ
+  khác Việt Nam "hôm nay" ở ô chọn ngày và tháng mặc định của màn Công nợ
+  lệch so với giờ CSDL. `App.init` nay tự đặt múi giờ Việt Nam. Máy đặt
+  giờ Việt Nam không thấy khác biệt.
+
 ## [v1.0.0] – 14/11/2026 – Sprint 4
 
 Bản phát hành đầu tiên đủ phạm vi v1.0: thống kê, báo cáo Excel, hộ nợ
