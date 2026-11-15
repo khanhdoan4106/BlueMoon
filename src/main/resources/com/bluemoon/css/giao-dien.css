@@ -42,6 +42,11 @@
     -mau-chon: #dbeafe;
     -mau-xen-ke: #f8fafc;
     -mau-nen-loi: #fef2f2;
+    /* Bieu do cong no (gia dinh 46): dung han, tre han, con no. */
+    -mau-bd-dung-han: -mau-chinh-dam;
+    -mau-bd-tre-han: #d97706;
+    -mau-bd-con-no: -mau-nhan;
+    -mau-bd-vien-con-no: -mau-phu;
     -fx-font-family: "Be Vietnam Pro";
     -fx-font-size: 16px;
     -fx-text-fill: -mau-chu;
@@ -775,8 +780,10 @@
     -fx-font-weight: bold;
 }
 
-/* Bieu do cot (docs/design/ui.md, Quy tac bieu do): luoi ngang mo, khong
-   luoi doc, cot thang da qua nhat, cot thang hien tai dam. */
+/* Bieu do cot chong (docs/design/ui.md, Quy tac bieu do): luoi ngang mo,
+   khong luoi doc; ba phan cua cot theo bien -mau-bd-*; "Con no" la mau
+   trung tinh nhat co vien, khong dung do. Don vi truc Y la tieu de bieu do,
+   nam ngang, canh trai o dau truc. */
 .bieu-do-thu .chart-plot-background {
     -fx-background-color: transparent;
 }
@@ -799,14 +806,48 @@
     -fx-text-fill: -mau-phu;
 }
 
-.bieu-do-thu .chart-bar.cot-da-qua {
-    -fx-background-color: #93b4f5;
-    -fx-background-radius: 4 4 0 0;
+.bieu-do-thu .chart-title {
+    -fx-alignment: center-left;
+    -fx-text-fill: -mau-phu;
+    -fx-font-family: "Be Vietnam Pro";
+    -fx-font-size: 14px;
+    -fx-font-weight: normal;
+    -fx-padding: 0 0 4 0;
 }
 
-.bieu-do-thu .chart-bar.cot-hien-tai {
-    -fx-background-color: -mau-chinh-dam;
-    -fx-background-radius: 4 4 0 0;
+.bieu-do-thu .default-color0.chart-bar {
+    -fx-background-color: -mau-bd-dung-han;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+}
+
+.bieu-do-thu .default-color1.chart-bar {
+    -fx-background-color: -mau-bd-tre-han;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+}
+
+.bieu-do-thu .default-color2.chart-bar {
+    -fx-background-color: -mau-bd-vien-con-no, -mau-bd-con-no;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 0;
+}
+
+.bieu-do-thu .chart-legend {
+    -fx-background-color: transparent;
+    -fx-padding: 8 0 0 0;
+    -fx-hgap: 20;
+}
+
+.bieu-do-thu .chart-legend-item {
+    -fx-graphic-text-gap: 8;
+    -fx-text-fill: -mau-chu;
+    -fx-font-family: "Be Vietnam Pro";
+    -fx-font-size: 14px;
+}
+
+.bieu-do-thu .chart-legend-item-symbol {
+    -fx-padding: 6;
 }
 
 .bieu-do-thu .nhan-cot {

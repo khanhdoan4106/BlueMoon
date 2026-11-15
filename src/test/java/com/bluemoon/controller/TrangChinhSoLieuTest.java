@@ -3,9 +3,21 @@ package com.bluemoon.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.bluemoon.dao.BienDongDaoImpl;
+import com.bluemoon.dao.DongHoCsdl;
+import com.bluemoon.dao.KhoanPhiDaoImpl;
+import com.bluemoon.dao.NoDongDaoImpl;
+import com.bluemoon.dao.NoDongDao.TomTatNo;
+import com.bluemoon.dao.TaiKhoanDaoImpl;
+import com.bluemoon.dao.ThongKeDaoImpl;
 import com.bluemoon.model.BienDong;
+import com.bluemoon.model.CongNoThang;
 import com.bluemoon.model.LoaiBienDong;
-import com.bluemoon.model.ThuThang;
+import com.bluemoon.model.TaiKhoan;
+import com.bluemoon.service.BienDongService;
+import com.bluemoon.service.NoDongService;
+import com.bluemoon.service.SoTien;
+import com.bluemoon.service.ThongKeService;
 import com.bluemoon.util.PhongChu;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -39,17 +51,24 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javax.imageio.ImageIO;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 /**
- * TS-004: Trang chính với số liệu bình thường (6 tháng có tiền, tháng hiện
- * tại đậm, vài biến động) ở 1440×1024 và 1120×645, chữ 16 px. Tải
- * trang-chinh.fxml không controller (không CSDL), điền số liệu như
- * {@link TrangChinhController} làm, rồi kiểm nhãn tháng T7…T12, số trên đầu
- * cột và tên trục không chồng nhau, cột tháng hiện tại đậm. Có
+ * TS-004, US-016: Trang chính với số liệu bình thường (một tháng chưa
+ * chốt, năm tháng có công nợ, vài biến động) ở 1440×1024 và 1120×645, chữ
+ * 16 px. Tải trang-chinh.fxml không controller (không CSDL), điền số liệu
+ * như {@link TrangChinhController} làm, rồi kiểm nhãn tháng T7…T12, tỷ lệ
+ * trên đầu cột, đơn vị, chú giải không chồng nhau, không bị cắt, không
+ * xoay; cột không quá nửa khoảng cách giữa hai tháng. Có
  * {@code -DchupAnh=<thư mục>} thì chụp PNG cho báo cáo
  * (docs/review/ts-004-giao-dien.md).
+ *
+ * <p>Có thêm {@code -DchupCsdl=1} (và {@code BLUEMOON_DB_*} trỏ tới một
+ * CSDL đã nạp seed-demo) thì vẽ cả Trang chính bằng số liệu đọc từ CSDL đó
+ * qua Service thật, kiểm cùng các điều trên và chụp ảnh cả màn lẫn riêng
+ * khung biểu đồ. Chỉ đọc, không sửa CSDL.
  */
 class TrangChinhSoLieuTest {
 
@@ -95,8 +114,20 @@ class TrangChinhSoLieuTest {
     @ParameterizedTest
     @CsvSource({"1440, 1024", "1120, 645"})
     void soLieuBinhThuongKhongChongChu(int rong, int cao) throws Exception {
+        veVaKiem(rong, cao, false);
+    }
+
+    @ParameterizedTest
+    @CsvSource({"1440, 1024", "1120, 645"})
+    @EnabledIfSystemProperty(named = "chupCsdl", matches = ".+")
+    void soLieuTuCsdlKhongChongChu(int rong, int cao) throws Exception {
+        veVaKiem(rong, cao, true);
+    }
+
+    private static void veVaKiem(int rong, int cao, boolean tuCsdl)
+            throws Exception {
         List<String> loi = new ArrayList<>();
-        WritableImage anh = chay(() -> {
+        List<WritableImage> anh = chay(() -> {
             FXMLLoader loader = new FXMLLoader();
             Parent goc;
             try (InputStream vao = new ByteArrayInputStream(fxml()
@@ -104,7 +135,11 @@ class TrangChinhSoLieuTest {
                 goc = loader.load(vao);
             }
             Map<String, Object> ten = loader.getNamespace();
-            dienSoLieu(ten);
+            if (tuCsdl) {
+                dienTuCsdl(ten);
+            } else {
+                dienSoLieu(ten);
+            }
             Scene scene = new Scene(goc, rong, cao);
             scene.getStylesheets().add(TrangChinhSoLieuTest.class
                     .getResource("/com/bluemoon/css/giao-dien.css")
@@ -117,34 +152,69 @@ class TrangChinhSoLieuTest {
                 goc.layout();
             }
             BieuDoThuPhi bieuDo = (BieuDoThuPhi) ten.get("bieuDo");
-            kiemBieuDo(bieuDo, loi);
+            kiemBieuDo(bieuDo, loi, !tuCsdl);
             kiemCat(goc, loi);
-            WritableImage a = scene.snapshot(null);
+            // Ca man hinh, va rieng khung bieu do (o 1120x645 khung nay
+            // phai cuon moi thay het).
+            List<WritableImage> a = List.of(scene.snapshot(null),
+                    bieuDo.getParent().snapshot(null, null));
             stage.close();
             return a;
         });
         String thuMuc = System.getProperty("chupAnh");
         if (thuMuc != null) {
             Files.createDirectories(Path.of(thuMuc));
-            ghiPng(anh, Path.of(thuMuc, System.getProperty("chupTienTo",
-                    "anh") + "-trang-chinh-so-lieu-" + rong + "x" + cao
-                    + ".png"));
+            String dau = System.getProperty("chupTienTo", "anh");
+            String cuoi = (tuCsdl ? "-csdl-" : "-so-lieu-") + rong + "x"
+                    + cao + ".png";
+            ghiPng(anh.get(0), Path.of(thuMuc, dau + "-trang-chinh" + cuoi));
+            if (tuCsdl) {
+                ghiPng(anh.get(1), Path.of(thuMuc, dau + "-bieu-do" + cuoi));
+            }
         }
         assertTrue(loi.isEmpty(), rong + "×" + cao + ":\n  "
                 + String.join("\n  ", loi));
     }
 
-    private static void kiemBieuDo(BieuDoThuPhi b, List<String> loi) {
-        List<XYChart.Data<String, Number>> cot = b.getData().get(0)
-                .getData();
-        assertEquals(List.of("T7", "T8", "T9", "T10", "T11", "T12"),
-                cot.stream().map(XYChart.Data::getXValue).toList());
-        assertTrue(cot.get(5).getNode().getStyleClass()
-                .contains(BieuDoThuPhi.COT_HIEN_TAI), "tháng hiện tại đậm");
+    private static void kiemBieuDo(BieuDoThuPhi b, List<String> loi,
+            boolean soLieuMau) {
+        List<XYChart.Data<String, Number>> cot = new ArrayList<>();
+        b.getData().forEach(s -> cot.addAll(s.getData()));
+        cot.removeIf(d -> !d.getNode().isVisible());
+        if (soLieuMau) {
+            assertEquals(List.of("T7", "T8", "T9", "T10", "T11", "T12"),
+                    b.getData().get(0).getData().stream()
+                            .map(XYChart.Data::getXValue).toList());
+        }
+        double khoang = ((javafx.scene.chart.CategoryAxis) b.getXAxis())
+                .getCategorySpacing();
+        double rongCot = cot.get(0).getNode().getBoundsInParent()
+                .getWidth();
+        if (rongCot > khoang * 0.5 + 0.5
+                || rongCot > BieuDoThuPhi.COT_TOI_DA + 0.5) {
+            loi.add("cột rộng " + rongCot + " trên khoảng " + khoang);
+        }
         List<Text> chu = new ArrayList<>();
         gomChu(b, chu);
-        List<String> can = List.of("T7", "T8", "T9", "T10", "T11", "T12",
-                "Triệu đồng", "Tháng (năm 2026)");
+        List<String> can = soLieuMau
+                ? List.of("T7", "T8", "T9", "T10", "T11", "T12",
+                        "Triệu đồng", "Tháng (năm 2026)", "Thu đúng hạn",
+                        "Thu trễ hạn", "Còn nợ", "92%", "57%")
+                : List.of("Triệu đồng", "Thu đúng hạn", "Thu trễ hạn",
+                        "Còn nợ");
+        if (soLieuMau && chu.stream().noneMatch(
+                t -> t.getText().replace('\n', ' ')
+                        .equals(BieuDoThuPhi.CHUA_CHOT))) {
+            loi.add("thiếu chữ \"Chưa chốt\" trên biểu đồ");
+        }
+        for (Text t : chu) {
+            for (Node n = t; n != null && n != b.getParent();
+                    n = n.getParent()) {
+                if (Math.abs(n.getRotate()) > 1e-6) {
+                    loi.add("\"" + t.getText() + "\" bị xoay");
+                }
+            }
+        }
         for (String c : can) {
             if (chu.stream().noneMatch(t -> t.getText().equals(c))) {
                 loi.add("thiếu chữ \"" + c + "\" trên biểu đồ");
@@ -238,18 +308,12 @@ class TrangChinhSoLieuTest {
         ((Label) ten.get("tyLeLabel")).setText("72% tổng phải thu");
         ((Label) ten.get("soHoNoLabel")).setText("14");
         ((Label) ten.get("noDongLabel")).setText("3 hộ nợ từ 3 tháng trở lên");
-        ((Label) ten.get("chuThichLabel")).setText("Cột đậm: tháng 12 chưa"
-                + " kết thúc, số liệu tính đến hôm nay.");
+        List<CongNoThang> sau = congNoMau();
+        ((Label) ten.get("chuThichLabel")).setText(
+                BieuDoThuPhi.chuThich(sau, T12));
         Node nhac = (Node) ten.get("nhacChotBox");
         nhac.setVisible(false);
         nhac.setManaged(false);
-        long[] trieu = {198_000_000, 205_500_000, 201_200_000, 214_000_000,
-            209_300_000, 186_450_000};
-        List<ThuThang> sau = new ArrayList<>();
-        for (int i = 0; i < trieu.length; i++) {
-            sau.add(new ThuThang(T12.minusMonths(5L - i),
-                    BigDecimal.valueOf(trieu[i])));
-        }
         ((BieuDoThuPhi) ten.get("bieuDo")).hien(sau, T12);
         LocalDateTime luc = LocalDateTime.of(2026, 12, 3, 9, 15);
         List<BienDong> bd = List.of(
@@ -269,6 +333,70 @@ class TrangChinhSoLieuTest {
         box.getChildren().add(bang);
         box.setVisible(true);
         box.setManaged(true);
+    }
+
+    /**
+     * Điền như TrangChinhController, số liệu đọc qua Service thật từ CSDL
+     * đang cấu hình (seed-demo), bằng tài khoản admin của CSDL đó.
+     */
+    private static void dienTuCsdl(Map<String, Object> ten) {
+        TaiKhoan tk = new TaiKhoanDaoImpl().timTheoTenDangNhap("admin")
+                .orElseThrow();
+        ((Label) ten.get("tenNguoiDungLabel")).setText(tk.getHoTen());
+        ((Label) ten.get("vaiTroLabel")).setText("Quản trị viên");
+        ThongKeService.TongQuan tq = new ThongKeService(
+                new ThongKeDaoImpl(), new KhoanPhiDaoImpl(),
+                new DongHoCsdl()).tongQuan(tk);
+        YearMonth t = tq.thang();
+        ((Label) ten.get("tieuDeLabel")).setText("Tổng quan tháng "
+                + t.getMonthValue() + "/" + t.getYear());
+        ((Label) ten.get("daThuLabel")).setText(SoTien.hienThi(tq.daThu()));
+        ((Label) ten.get("tyLeLabel")).setText(
+                TrangChinhController.dongTyLe(tq));
+        ((BieuDoThuPhi) ten.get("bieuDo")).hien(tq.congNo(), t);
+        ((Label) ten.get("chuThichLabel")).setText(
+                BieuDoThuPhi.chuThich(tq.congNo(), t));
+        for (CongNoThang c : tq.congNo()) {
+            System.out.println("CONG_NO " + c.thang() + " phaiNop="
+                    + c.phaiNop() + " dungHan=" + c.dungHan() + " treHan="
+                    + c.treHan() + " conNo=" + c.conNo() + " tyLe="
+                    + c.phanTram() + " ho=" + c.soHoDongDu() + "/"
+                    + c.tongSoHo());
+        }
+        TomTatNo no = new NoDongService(new NoDongDaoImpl()).tomTat(tk);
+        ((Label) ten.get("soHoNoLabel")).setText(
+                String.valueOf(no.soHoConNo()));
+        ((Label) ten.get("noDongLabel")).setText(
+                TrangChinhController.dongNoDong(no));
+        Node nhac = (Node) ten.get("nhacChotBox");
+        nhac.setVisible(false);
+        nhac.setManaged(false);
+        TableView<BienDong> bang = BangLichSu.taoBangGon(
+                new BienDongService(new BienDongDaoImpl()).ganDay(tk));
+        bang.setPrefHeight(200);
+        VBox box = (VBox) ten.get("bienDongBox");
+        box.getChildren().add(bang);
+        box.setVisible(true);
+        box.setManaged(true);
+    }
+
+    /** Tháng 7 chưa chốt; tháng 8 đến 12 có đủ ba phần. */
+    static List<CongNoThang> congNoMau() {
+        long[][] dong = {
+            {201_200_000, 172_400_000, 13_100_000},
+            {214_000_000, 180_900_000, 16_200_000},
+            {209_300_000, 171_000_000, 21_500_000},
+            {212_600_000, 176_300_000, 9_800_000},
+            {212_600_000, 121_900_000, 0}};
+        List<CongNoThang> sau = new ArrayList<>();
+        sau.add(CongNoThang.chuaChot(T12.minusMonths(5)));
+        for (int i = 0; i < dong.length; i++) {
+            sau.add(new CongNoThang(T12.minusMonths(4L - i), true,
+                    BigDecimal.valueOf(dong[i][0]),
+                    BigDecimal.valueOf(dong[i][1]),
+                    BigDecimal.valueOf(dong[i][2]), 300 + i, 356));
+        }
+        return sau;
     }
 
     private static String fxml() throws Exception {
