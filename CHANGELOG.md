@@ -61,6 +61,13 @@ dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/). Mã story
 
 ### Sửa
 
+- **Chữ bị cắt "…" trong bảng khi có dữ liệu (rà soát giao diện, G1 – G5):**
+  ở cửa sổ 1120×645, bảng "Phiếu thu hôm nay" hiện đủ số biên lai, thời
+  điểm, hình thức; "Khoản thu" hiện đủ loại, mức thu, trạng thái, còn tên
+  khoản và khoảng ngày dài thì xuống dòng (dòng cao 56 px); ô "Đơn giá"
+  không còn co lại; "Nhật ký thao tác" hiện đủ ngày giờ; ô chọn tháng ở
+  "Chốt công nợ" hiện đủ "Tháng 11/2026"; số điện thoại ở "Hộ gia đình"
+  hiện đủ. Chỉ đổi độ rộng cột, không đổi nghiệp vụ.
 - **Múi giờ khi chạy `mvn javafx:run` (rà soát phi chức năng, mục P8):**
   lệnh này chạy thẳng `App`, bỏ qua `Launcher`, nên trên máy đặt múi giờ
   khác Việt Nam "hôm nay" ở ô chọn ngày và tháng mặc định của màn Công nợ
