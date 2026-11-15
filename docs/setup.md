@@ -282,6 +282,14 @@ phiếu chỉ hủy được phiếu do mình lập.
 | Lỗi 1419 "You do not have the SUPER privilege and binary logging is enabled" khi chạy `schema.sql`, `mvn verify -Pmysql` hoặc khôi phục sao lưu | Chạy `schema.sql` bằng root, hoặc cho kiểm thử tích hợp: [mục 4](#4-chạy-test); khôi phục sao lưu: [mục 7](#7-sao-lưu-và-khôi-phục) |
 | Sửa `config/db.properties` khi ứng dụng đang chạy (kể cả vừa tạo file sau khi thấy báo thiếu cấu hình) mà vẫn báo lỗi cũ | Tắt và mở lại ứng dụng: cấu hình chỉ được đọc một lần khi khởi động |
 
+Khi ứng dụng báo "Có lỗi khi đọc hoặc lưu dữ liệu", "Không kết nối được cơ sở
+dữ liệu" hoặc "Có lỗi không mong muốn", nguyên nhân kỹ thuật (mã lỗi MySQL,
+stack trace) được ghi ở console và nối vào tệp `bluemoon.log` trong thư mục
+chạy ứng dụng (thư mục repo). Gửi kèm phần cuối tệp này khi báo lỗi cho
+nhóm. Tệp tối đa 1 MB, nằm trong `.gitignore`; thông báo lỗi của MySQL có
+thể chứa dữ liệu vừa nhập (ví dụ số CCCD bị trùng), nên không đưa tệp lên
+nơi công khai.
+
 ## 7. Sao lưu và khôi phục
 
 TS-001, giả định 43. Làm trên **máy đặt MySQL**. Ba script trong `scripts/`:

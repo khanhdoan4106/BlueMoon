@@ -3,6 +3,7 @@ package com.bluemoon.controller;
 import com.bluemoon.config.CauHinhException;
 import com.bluemoon.dao.DaoException;
 import com.bluemoon.service.NghiepVuException;
+import com.bluemoon.util.NhatKyLoi;
 import javafx.application.Platform;
 
 /**
@@ -22,14 +23,28 @@ public final class LoiKhongMongDoi {
     /** Dat bo xu ly cho moi luong cua ung dung. Goi mot lan khi khoi dong. */
     public static void caiDat() {
         Thread.setDefaultUncaughtExceptionHandler((luong, loi) -> {
-            loi.printStackTrace();
-            String noiDung = thongBao(loi);
+            String noiDung = ghiVaThongBao(loi);
             if (Platform.isFxApplicationThread()) {
                 HopThoai.canhBao(noiDung);
             } else {
                 Platform.runLater(() -> HopThoai.canhBao(noiDung));
             }
         });
+    }
+
+    /**
+     * Ghi loi vao log roi tra noi dung hien cho nguoi dung. Loi CSDL do
+     * {@link LoiCsdl#thongBao} ghi, nen khong ghi lan hai o day.
+     *
+     * @param loi loi khong duoc bat
+     * @return thong bao phu hop loai loi
+     */
+    static String ghiVaThongBao(Throwable loi) {
+        if (!(loi instanceof CauHinhException
+                || loi instanceof DaoException)) {
+            NhatKyLoi.ghi("Loi khong mong doi", loi);
+        }
+        return thongBao(loi);
     }
 
     /**
