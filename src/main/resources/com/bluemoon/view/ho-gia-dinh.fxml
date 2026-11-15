@@ -54,7 +54,7 @@
                 <TableColumn fx:id="cotSoThanhVien" text="Thành viên"
                              prefWidth="120"/>
                 <TableColumn fx:id="cotSdt" text="Điện thoại"
-                             prefWidth="125"/>
+                             prefWidth="140"/>
                 <TableColumn fx:id="cotNgay" text="Ngày chuyển đến"
                              prefWidth="170"/>
                 <TableColumn fx:id="cotTrangThai" text="Trạng thái"

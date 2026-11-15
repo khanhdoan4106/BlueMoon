@@ -589,6 +589,16 @@
 }
 
 /* US-003: han tam tru da qua ma chua gia han. */
+/* Bang it dong co o dai (Khoan thu: ten khoan, khoang ngay): dong cao du
+   hai dong chu, o xuong dong thay vi cat bang dau "...". */
+.bang-hai-dong .table-row-cell {
+    -fx-cell-size: 56px;
+}
+
+.table-cell.o-xuong-dong {
+    -fx-wrap-text: true;
+}
+
 .table-cell.qua-han {
     -fx-text-fill: -mau-loi;
     -fx-font-weight: bold;
