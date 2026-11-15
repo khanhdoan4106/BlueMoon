@@ -32,10 +32,10 @@ tạm không kích hoạt được tra cứu; luồng này đã có `ThuMotHoNam
 | G3 | Nhật ký thao tác: cột Thời điểm mất phần giờ ở cả hai cỡ cửa sổ | **Cao** | Sửa ở PR riêng |
 | G4 | Chốt công nợ: ô chọn tháng hiện "Tháng 11/20…" ở mọi cỡ, mọi vai trò | **Cao** | Sửa ở PR riêng |
 | G5 | Hộ gia đình: số điện thoại bị cắt ở cả 1440×1024 | **Cao** | Sửa ở PR riêng |
-| T1 | Diện tích ghi dấu chấm ("75.5 m²") ở Chốt công nợ và Hộ gia đình, nơi khác ghi dấu phẩy | Trung bình | Chờ duyệt |
-| T2 | Số trong bảng căn trái ở Chốt công nợ, Hộ gia đình; Phiếu thu hôm nay căn phải | Trung bình | Chờ duyệt |
-| T3 | Gợi ý "dd/mm/yyyy" của ô ngày bị cắt ở form Khoản thu và Tạm trú / tạm vắng (1120×645) | Trung bình | Chờ duyệt |
-| T4 | Nhân khẩu ở 1120×645: nút "Lưu" của form bên phải bị che, phải cuộn | Trung bình | Chờ duyệt |
+| T1 | Diện tích ghi dấu chấm ("75.5 m²") ở Chốt công nợ và Hộ gia đình, nơi khác ghi dấu phẩy | Trung bình | Đã sửa (PR T1 – T4) |
+| T2 | Số trong bảng căn trái ở Chốt công nợ, Hộ gia đình; Phiếu thu hôm nay căn phải | Trung bình | Đã sửa (PR T1 – T4) |
+| T3 | Gợi ý "dd/mm/yyyy" của ô ngày bị cắt ở form Khoản thu và Tạm trú / tạm vắng (1120×645) | Trung bình | Đã sửa (PR T1 – T4) |
+| T4 | Nhân khẩu ở 1120×645: nút "Lưu" của form bên phải bị che, phải cuộn | Trung bình | Đã sửa (PR T1 – T4) |
 | T5 | Hộ gia đình ở 1120×645: bảng có thanh cuộn ngang, 4 cột cuối khuất | Trung bình | Chờ duyệt |
 | L1 | Không có dấu hiệu "đang tải" khi thao tác CSDL chậm | Thấp | Chờ duyệt (đã ghi ở P3) |
 | L2 | Một màu hex còn lại ngoài bảng biến trong CSS (mẫu in) | Thấp | Chờ duyệt |
@@ -149,6 +149,25 @@ màn.
   thoại", "Ngày chuyển đến", "Trạng thái" khuất. Ở 1440×1024 thấy đủ.
 - **Đề xuất:** đổi bố cục (ẩn bớt cột hoặc thu form) là thay đổi bố cục,
   cần duyệt.
+
+### Đã sửa T1 – T4 (15/11/2026)
+
+Theo quyết định duyệt: sửa T1 – T4 trong một PR, không làm T5 và L1 – L4.
+Ảnh trước / sau ở 1120×645 (tệp `t1-t4-truoc-*.png`, `t1-t4-sau-*.png`
+trong [ra-soat-giao-dien](ra-soat-giao-dien)):
+
+| Mục | Sau khi sửa |
+|---|---|
+| T1 | Diện tích "75,50 m²" ở Chốt công nợ, Hộ gia đình (cột và ô nhập "75,50"), cùng một hàm với nhật ký (`DienTich`) |
+| T2 | Cột Diện tích, Đơn giá, Phải nộp, Số tháng nợ, Tổng tiền nợ, Tầng, Thành viên căn phải |
+| T3 | Gợi ý "ngày/tháng/năm"; hai ô ngày của form Khoản thu xếp dọc; khung Tạm trú / tạm vắng và form Nhân khẩu chia lại độ rộng để gợi ý hiện hết |
+| T4 | Thông báo và bốn nút của form Nhân khẩu ghim ở cuối khung; chỉ phần ô nhập cuộn |
+
+![Nhân khẩu sau khi sửa](ra-soat-giao-dien/t1-t4-sau-nhanKhau.png)
+
+Đánh đổi ở 1120×645: form Nhân khẩu hẹp hơn (430 → 404 px) nên hai nút
+"Đặt làm chủ hộ", "Đánh dấu chuyển đi" xuống hai hàng, vùng ô nhập còn thấy
+khoảng ba ô mỗi lần cuộn; ở 1440×1024 thấy đủ.
 
 ## Mức Thấp (chờ duyệt)
 
