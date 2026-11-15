@@ -27,7 +27,8 @@ thấy xảy ra) và **lựa chọn thiết kế** (cố ý, có ghi trong tài 
   `refactor/do-dai-dong-checkstyle` theo yêu cầu, vì chỉ là 9 chỗ ngắt dòng
   và từ nay CI tự kiểm.
 - Năm mục mức Trung bình (P2 – P6) và năm mục mức Thấp còn lại (P8 – P12)
-  **chờ duyệt**, không sửa.
+  không sửa trong Giai đoạn 2; quyết định cho từng mục ở "Kết luận sau khi
+  duyệt".
 - **Phát hiện khi đẩy các PR lên GitHub (P13):** job `build-mysql` đỏ mỗi
   ngày từ 00:00 đến 07:00 giờ Việt Nam vì `SeedIT` lấy "hôm nay" theo múi
   giờ của máy CI. Lỗi ở test, không ở ứng dụng. Vì nó chặn việc kiểm CI của
@@ -35,6 +36,27 @@ thấy xảy ra) và **lựa chọn thiết kế** (cố ý, có ghi trong tài 
 - Không phát hiện lỗi nghiệp vụ.
 
 Pull Request: báo cáo này #47; P1 #48; P7 #49; P13 #50.
+
+## Kết luận sau khi duyệt (15/11/2026)
+
+| Mục | Kết luận | Pull Request |
+|---|---|---|
+| P1, P7, P13 | Đã sửa và đã vào `main` | #48, #49, #50 |
+| P2 | Sửa: ghi nguyên nhân lỗi ra console và `bluemoon.log` | #51 |
+| P8 | Sửa: `App.init` tự đặt múi giờ Việt Nam | #52 |
+| P12 | Sửa câu chữ `architecture.md`: đủ bảy hàm | #53 |
+| P3, P5 | **Không sửa.** Ghi nhận là hạn chế đã biết (mục dưới) | – |
+| P4, P6, P9, P10, P11 | Để nguyên | – |
+
+### Hạn chế đã biết
+
+Hai mục sau được Scrum Master quyết định không sửa trong v1.0; nêu rõ để
+nhóm trả lời được khi bị hỏi.
+
+| # | Hạn chế | Biểu hiện, đã đo | Vì sao chấp nhận | Cách tránh khi vận hành |
+|---|---|---|---|---|
+| P3 | Không đặt thời gian chờ kết nối; mọi thao tác CSDL chạy trên luồng giao diện | Máy chủ MySQL không tới được: cửa sổ đứng 21 giây rồi báo "Không kết nối được cơ sở dữ liệu". Máy khác đang giữ khóa dòng của hộ: đứng tối đa 50 giây rồi báo "Có người khác đang thao tác trên hộ này". Trong cả hai trường hợp dữ liệu không bị ghi dở (mục 5.2) | Demo và triển khai hiện tại đặt MySQL cùng máy hoặc cùng mạng nội bộ ổn định; giao dịch ngắn nên chờ khóa lâu là hiếm. Chạy CSDL ở luồng nền là thay đổi lớn trên mọi Controller, đã ghi ở "Những điểm chưa làm" của `architecture.md` | Kiểm tra MySQL đã chạy trước khi mở ứng dụng. Khi cửa sổ đứng, chờ thông báo hiện ra, không tắt ngang. Cần rút ngắn thì thêm `&connectTimeout=5000` vào `url` trong `config/db.properties` (không cần sửa mã; đã thử, thời gian chờ còn 5,4 giây) |
+| P5 | Không tự khóa tài khoản sau nhiều lần đăng nhập sai; không buộc đổi mật khẩu mặc định của `admin` | Mỗi lần thử sai mất khoảng 0,26 giây do BCrypt cost 12, tức khoảng 330.000 lần thử mỗi ngày nếu không ai chặn. `admin` / `Admin@123` có trong `seed.sql` công khai | US-021 không có tiêu chí chấp nhận nào yêu cầu khóa sau N lần sai; khóa tài khoản do Quản trị viên làm tay (giả định 18). Ứng dụng desktop đặt trong văn phòng Ban quản trị, không mở ra Internet. Sửa là đổi hành vi nghiệp vụ đã chốt | Đổi mật khẩu `admin` ngay sau lần đăng nhập đầu (màn Tài khoản); mật khẩu tối thiểu 8 ký tự. Quản trị viên khóa tài khoản không còn dùng |
 
 Môi trường thử: `mysqld` 8.0.46 riêng ở cổng 3399, thư mục dữ liệu trong thư
 mục tạm của phiên; JDK Temurin 21.0.12; Windows 11, 16 GB RAM. CSDL
@@ -45,19 +67,19 @@ năng và các chương trình đo là tệp tạm, không đưa vào repo.
 
 | # | Mục | Loại | Mức | Công (giờ) | Rủi ro khi sửa | Trạng thái |
 |---|---|---|---|---|---|---|
-| P1 | User CSDL của ứng dụng có `GRANT ALL`: xóa được trigger và nhật ký (G2) | Lỗi thật | **Cao** | 4 | Thấp | Sửa: PR `security/tach-user-csdl` |
-| P2 | Lỗi CSDL chỉ hiện thông báo chung, không ghi lại nguyên nhân ở đâu | Lỗi thật | Trung bình | 1 | Thấp | Chờ duyệt |
-| P3 | Không đặt thời gian chờ kết nối; mọi thao tác CSDL chạy trên luồng giao diện | Rủi ro | Trung bình | 2 | Thấp – Trung bình | Chờ duyệt |
-| P4 | Kết nối MySQL không mã hóa; mật khẩu CSDL nằm ở từng máy trạm | Rủi ro | Trung bình | 3 | Trung bình | Chờ duyệt |
-| P5 | Không giới hạn số lần đăng nhập sai; không buộc đổi mật khẩu mặc định của `admin` | Lựa chọn thiết kế | Trung bình | 4 | Trung bình (đổi hành vi) | Chờ duyệt |
-| P6 | "In thông báo phí cho tất cả" mở một kết nối cho mỗi hộ | Rủi ro | Trung bình | 1 | Thấp | Chờ duyệt |
-| P7 | 9 dòng mã vượt 80 cột; chưa có công cụ kiểm quy ước | Lỗi thật (quy ước) | Thấp | 1 | Thấp | Sửa: PR `refactor/do-dai-dong-checkstyle` |
-| P8 | `mvn javafx:run` chạy `App`, bỏ qua `Launcher` nên không đặt múi giờ | Lỗi thật | Thấp | 0,5 | Thấp | Chờ duyệt |
-| P9 | Chốt công nợ ghi từng khoản một câu lệnh (1.029 câu cho 500 hộ) | Lựa chọn thiết kế | Thấp | 2 | Trung bình | Chờ duyệt |
-| P10 | Thời gian đăng nhập cho biết tên đăng nhập có tồn tại hay không | Rủi ro | Thấp | 0,5 | Thấp | Chờ duyệt |
-| P11 | Controller ít test tự động (29% dòng); CI chưa đo độ phủ | Rủi ro | Thấp | 2 | Thấp | Chờ duyệt |
-| P12 | `architecture.md` liệt kê thiếu hai hàm Service không kiểm quyền | Tài liệu | Thấp | 0,2 | Không | Chờ duyệt |
-| P13 | `SeedIT` phụ thuộc múi giờ của JVM: CI đỏ từ 00:00 đến 07:00 giờ Việt Nam | Lỗi thật (ở test) | Trung bình | 0,5 | Thấp | Sửa: PR `fix/seed-it-mui-gio` (#50) |
+| P1 | User CSDL của ứng dụng có `GRANT ALL`: xóa được trigger và nhật ký (G2) | Lỗi thật | **Cao** | 4 | Thấp | Đã sửa (#48) |
+| P2 | Lỗi CSDL chỉ hiện thông báo chung, không ghi lại nguyên nhân ở đâu | Lỗi thật | Trung bình | 1 | Thấp | Sửa: #51 |
+| P3 | Không đặt thời gian chờ kết nối; mọi thao tác CSDL chạy trên luồng giao diện | Rủi ro | Trung bình | 2 | Thấp – Trung bình | Không sửa: hạn chế đã biết |
+| P4 | Kết nối MySQL không mã hóa; mật khẩu CSDL nằm ở từng máy trạm | Rủi ro | Trung bình | 3 | Trung bình | Để nguyên |
+| P5 | Không giới hạn số lần đăng nhập sai; không buộc đổi mật khẩu mặc định của `admin` | Lựa chọn thiết kế | Trung bình | 4 | Trung bình (đổi hành vi) | Không sửa: hạn chế đã biết |
+| P6 | "In thông báo phí cho tất cả" mở một kết nối cho mỗi hộ | Rủi ro | Trung bình | 1 | Thấp | Để nguyên |
+| P7 | 9 dòng mã vượt 80 cột; chưa có công cụ kiểm quy ước | Lỗi thật (quy ước) | Thấp | 1 | Thấp | Đã sửa (#49) |
+| P8 | `mvn javafx:run` chạy `App`, bỏ qua `Launcher` nên không đặt múi giờ | Lỗi thật | Thấp | 0,5 | Thấp | Sửa: #52 |
+| P9 | Chốt công nợ ghi từng khoản một câu lệnh (1.029 câu cho 500 hộ) | Lựa chọn thiết kế | Thấp | 2 | Trung bình | Để nguyên |
+| P10 | Thời gian đăng nhập cho biết tên đăng nhập có tồn tại hay không | Rủi ro | Thấp | 0,5 | Thấp | Để nguyên |
+| P11 | Controller ít test tự động (29% dòng); CI chưa đo độ phủ | Rủi ro | Thấp | 2 | Thấp | Để nguyên |
+| P12 | `architecture.md` liệt kê thiếu hai hàm Service không kiểm quyền | Tài liệu | Thấp | 0,2 | Không | Sửa: #53 |
+| P13 | `SeedIT` phụ thuộc múi giờ của JVM: CI đỏ từ 00:00 đến 07:00 giờ Việt Nam | Lỗi thật (ở test) | Trung bình | 0,5 | Thấp | Đã sửa (#50) |
 
 ## 2. Đánh giá theo NFR
 
