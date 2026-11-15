@@ -101,7 +101,7 @@ code tương ứng biến `-mau-*` của `css/giao-dien.css`.
 | chữ | `#0F172A` | `#134E4A` | `#020617` |
 | chữ phụ | `#526077` | `#475569` | `#334155` |
 | viền | `#CBD5E1` | `#99D5CC` | `#64748B` |
-| lỗi | `#B91C1C` | `#DC2626` | `#B91C1C` |
+| lỗi | `#B91C1C` | `#B91C1C` | `#B91C1C` |
 | thành công | `#166534` | `#15803D` | `#166534` |
 
 Chữ phụ của phương án A là `#526077` (biến `-mau-phu`): tương phản 5,8:1 trên
