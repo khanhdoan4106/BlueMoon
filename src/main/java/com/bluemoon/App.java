@@ -14,6 +14,15 @@ public class App extends Application {
 
     private static final String TIEU_DE = "BlueMoon - Quản lý chung cư";
 
+    /**
+     * Đặt múi giờ Việt Nam cả khi App được chạy thẳng (vd "mvn
+     * javafx:run"), không qua {@link Launcher#main}.
+     */
+    @Override
+    public void init() {
+        Launcher.datMuiGioViet();
+    }
+
     @Override
     public void start(Stage stage) {
         LoiKhongMongDoi.caiDat();

@@ -27,4 +27,17 @@ class LauncherTest {
         assertEquals(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")),
                 LocalDate.now(), "LocalDate.now() theo giờ Việt Nam");
     }
+
+    /**
+     * "mvn javafx:run" chạy thẳng App (pom.xml), không qua Launcher.main,
+     * nên App phải tự đặt múi giờ trước khi mở màn hình đầu tiên.
+     */
+    @Test
+    void chayThangAppCungDatMuiGioVietNam() throws Exception {
+        TimeZone.setDefault(TimeZone.getTimeZone("Pacific/Kiritimati"));
+
+        new App().init();
+
+        assertEquals("Asia/Ho_Chi_Minh", TimeZone.getDefault().getID());
+    }
 }

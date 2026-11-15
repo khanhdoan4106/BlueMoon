@@ -16,7 +16,8 @@ public final class Launcher {
      * Đặt múi giờ mặc định của ứng dụng là Việt Nam để "hôm nay" trên màn
      * hình (ô chọn ngày, ngày ghi biến động) không phụ thuộc cài đặt của
      * máy. Giờ ghi và đọc CSDL không dựa vào múi giờ này (DAO dùng
-     * {@code LocalDateTime} trực tiếp).
+     * {@code LocalDateTime} trực tiếp). {@link App#init} cũng gọi hàm này,
+     * cho trường hợp App được chạy thẳng.
      */
     static void datMuiGioViet() {
         TimeZone.setDefault(TimeZone.getTimeZone(DongHoCsdl.VN));
