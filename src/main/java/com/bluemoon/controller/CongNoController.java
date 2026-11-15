@@ -17,6 +17,7 @@ import com.bluemoon.service.NghiepVuException;
 import com.bluemoon.service.NoDongService;
 import com.bluemoon.service.SoTien;
 import com.bluemoon.service.ThongBaoPhiService;
+import com.bluemoon.util.DienTich;
 import com.bluemoon.util.PhienLamViec;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -131,8 +132,7 @@ public class CongNoController {
     private void initialize() {
         ganCot(cotCanHo, PhaiNop::maCanHo);
         ganCot(cotKhoan, PhaiNop::tenKhoan);
-        ganCot(cotDienTich, p -> p.dienTich().stripTrailingZeros()
-                .toPlainString() + " m²");
+        ganCot(cotDienTich, p -> DienTich.hien(p.dienTich()));
         ganCot(cotDonGia, p -> SoTien.hienThi(p.donGia()));
         ganCot(cotSoTien, p -> SoTien.hienThi(p.soTien()));
         ganCot(cotDaDong, p -> p.daDong() ? "Đã đóng" : "");

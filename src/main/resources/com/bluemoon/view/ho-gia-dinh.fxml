@@ -47,12 +47,13 @@
             <columns>
                 <TableColumn fx:id="cotMa" text="Mã căn hộ" prefWidth="120"/>
                 <TableColumn fx:id="cotLoai" text="Loại" prefWidth="90"/>
-                <TableColumn fx:id="cotTang" text="Tầng" prefWidth="70"/>
-                <TableColumn fx:id="cotDienTich" text="Diện tích (m²)"
-                             prefWidth="145"/>
+                <TableColumn fx:id="cotTang" text="Tầng" prefWidth="70"
+                             styleClass="cot-so"/>
+                <TableColumn fx:id="cotDienTich" text="Diện tích"
+                             prefWidth="125" styleClass="cot-so"/>
                 <TableColumn fx:id="cotChuHo" text="Chủ hộ" prefWidth="200"/>
                 <TableColumn fx:id="cotSoThanhVien" text="Thành viên"
-                             prefWidth="120"/>
+                             prefWidth="120" styleClass="cot-so"/>
                 <TableColumn fx:id="cotSdt" text="Điện thoại"
                              prefWidth="140"/>
                 <TableColumn fx:id="cotNgay" text="Ngày chuyển đến"
