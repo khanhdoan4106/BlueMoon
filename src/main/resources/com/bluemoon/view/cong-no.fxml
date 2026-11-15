@@ -41,7 +41,8 @@
                                     <Label text="Tạo khoản phải nộp phí dịch vụ và phí quản lý cho mọi hộ đang ở." wrapText="true"
                                            styleClass="phu-de"/>
                                 </VBox>
-                                <ComboBox fx:id="thangCombo" prefWidth="160"/>
+                                <ComboBox fx:id="thangCombo" prefWidth="190"
+                                          minWidth="190"/>
                                 <Button minWidth="-Infinity" text="Xem trước" onAction="#onXemTruoc"/>
                             </HBox>
                             <!-- Nhan thong bao chi hien va giu cho khi co chu (TS-004). -->

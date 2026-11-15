@@ -608,16 +608,16 @@ public class ThuPhiController {
     /** Cot chung cho bang phieu hom nay va lich su thu cua ho. */
     private static void cauHinhBangPhieu(TableView<PhieuThu> bang) {
         bang.getColumns().setAll(List.of(
-                cot("Số biên lai", 120, PhieuThu::soBienLai,
+                cot("Số biên lai", 175, PhieuThu::soBienLai,
                         "-fx-font-weight: bold;"),
-                cot("Căn hộ", 70, PhieuThu::maCanHo, null),
-                cot("Thời điểm", 125, p -> p.thoiDiem().format(NGAY_GIO),
+                cot("Căn hộ", 80, PhieuThu::maCanHo, null),
+                cot("Thời điểm", 175, p -> p.thoiDiem().format(NGAY_GIO),
                         null),
-                cot("Tổng tiền", 110, p -> SoTien.hienThi(p.tongTien()),
+                cot("Tổng tiền", 125, p -> SoTien.hienThi(p.tongTien()),
                         "-fx-alignment: CENTER-RIGHT;"),
-                cot("Hình thức", 105, p -> p.hinhThuc() == null ? "–"
+                cot("Hình thức", 140, p -> p.hinhThuc() == null ? "–"
                         : p.hinhThuc().getNhan(), null),
-                cot("Người thu", 170, PhieuThu::tenNguoiThu, null),
+                cot("Người thu", 200, PhieuThu::tenNguoiThu, null),
                 cotTrangThai()));
         bang.setColumnResizePolicy(
                 TableView.CONSTRAINED_RESIZE_POLICY_SUBSEQUENT_COLUMNS);
@@ -636,7 +636,7 @@ public class ThuPhiController {
 
     /** Cot trang thai: phieu huy hien "Da huy: ly do" mau do. */
     private static TableColumn<PhieuThu, String> cotTrangThai() {
-        TableColumn<PhieuThu, String> c = cot("Trạng thái", 280,
+        TableColumn<PhieuThu, String> c = cot("Trạng thái", 140,
                 ThuPhiController::trangThai, null);
         c.setCellFactory(col -> new TableCell<>() {
             @Override
@@ -655,7 +655,10 @@ public class ThuPhiController {
     private static TableColumn<PhieuThu, String> cot(String ten, double rong,
             Function<PhieuThu, String> lay, String kieu) {
         TableColumn<PhieuThu, String> c = new TableColumn<>(ten);
+        // Rong toi thieu = rong mong muon: bang hep thi cot khong co lai
+        // den muc cat chu (so bien lai, thoi diem).
         c.setPrefWidth(rong);
+        c.setMinWidth(rong);
         if (kieu != null) {
             c.setStyle(kieu);
         }

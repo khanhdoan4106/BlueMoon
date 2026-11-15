@@ -53,7 +53,7 @@ không có chữ `test`, để không xóa nhầm CSDL `bluemoon` đang dùng.
 | IntelliJ | Maven → bluemoon → Lifecycle → `test` |
 | Dòng lệnh | `mvn test` hoặc `mvn verify` (cần Maven 3.9+ trong PATH) |
 
-Kết quả mong đợi: `BUILD SUCCESS`, 383 test (2 bỏ qua: `ChupManHinhTest`
+Kết quả mong đợi: `BUILD SUCCESS`, 384 test (2 bỏ qua: `ChupManHinhTest`
 chỉ chạy khi có `-DchupAnh`, và phần vẽ Trang chính từ CSDL của
 `TrangChinhSoLieuTest` chỉ chạy khi có `-DchupCsdl`). `mvn verify` không có
 `-Pmysql` không chạy lớp `*IT`.
@@ -107,7 +107,7 @@ mvn test -Dtest=ChupManHinhTest,ThuMotHoNamBuocTest,TrangChinhSoLieuTest -DchupA
    Nếu user ứng dụng không phải `bluemoon`, đặt thêm `BLUEMOON_DB_USER` và
    `BLUEMOON_DB_PASSWORD`.
 
-Kết quả mong đợi: 383 test đơn vị và 75 kiểm thử tích hợp đều đạt (MySQL
+Kết quả mong đợi: 384 test đơn vị và 75 kiểm thử tích hợp đều đạt (MySQL
 8.0). Hai test cấu hình (`DatabaseConfigTest`) tự bỏ qua khi đã đặt
 `BLUEMOON_DB_*`, nên log hiện "Skipped: 2" ở lần chạy này.
 
@@ -140,6 +140,7 @@ hai xanh:
 | Sau tách user CSDL, `QuyenCsdlIT` (chưa phát hành) | 366 | 73 |
 | Sau log lỗi `GhiLogLoiTest` và múi giờ khi chạy `App` (chưa phát hành) | 371 | 73 |
 | Sau biểu đồ công nợ 6 tháng, giả định 46 (chưa phát hành) | 383 | 75 |
+| Sau sửa chữ bị cắt trong bảng, `BangPhieuThuKhongCatChuTest` (chưa phát hành) | 384 | 75 |
 
 ## 4. Ánh xạ AC → test tự động
 

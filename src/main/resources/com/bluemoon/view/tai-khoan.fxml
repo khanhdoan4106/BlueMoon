@@ -96,7 +96,7 @@
                             </columnResizePolicy>
                             <columns>
                                 <TableColumn fx:id="cotTen"
-                                             text="Tên đăng nhập"/>
+                                             text="Tên đăng nhập" minWidth="150"/>
                                 <TableColumn fx:id="cotHoTen" text="Họ tên"/>
                                 <TableColumn fx:id="cotSdt" text="Điện thoại"/>
                                 <TableColumn fx:id="cotVaiTro" text="Vai trò"/>
@@ -190,13 +190,13 @@
                             </placeholder>
                             <columns>
                                 <TableColumn fx:id="cotThoiDiem" text="Thời điểm"
-                                             prefWidth="140" minWidth="130"/>
+                                             prefWidth="188" minWidth="188"/>
                                 <TableColumn fx:id="cotNguoiLam" text="Người làm"
-                                             prefWidth="170"/>
+                                             prefWidth="265" minWidth="215"/>
                                 <TableColumn fx:id="cotThaoTac" text="Thao tác"
-                                             prefWidth="160"/>
+                                             prefWidth="195" minWidth="160"/>
                                 <TableColumn fx:id="cotDoiTuong" text="Đối tượng"
-                                             prefWidth="190"/>
+                                             prefWidth="208" minWidth="205"/>
                                 <TableColumn fx:id="cotNoiDung" text="Nội dung"
                                              prefWidth="380"/>
                             </columns>
