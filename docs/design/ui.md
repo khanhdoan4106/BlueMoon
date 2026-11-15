@@ -46,11 +46,11 @@ File gồm bộ thành phần dùng chung (nút, ô nhập, mục menu, thẻ s�
 |---|---|---|---|
 | Đăng nhập | 1120×645 | US-021 | Đã có code (Sprint 1) |
 | Trang chính | 1440×1024 | US-016, US-027, nhắc chốt công nợ | Đã có code: nhắc chốt, biến động gần đây (Sprint 2); tiêu đề "Tổng quan tháng …", thẻ "Đã thu tháng này", "Hộ còn nợ", biểu đồ "Thu phí 6 tháng gần nhất" (Sprint 4) |
-| Thống kê theo khoản, báo cáo thu theo tháng | 1120×645 | US-019, US-018 | Đã có code (Sprint 4), mục menu "Thống kê" như Figma; chưa có frame riêng trên Figma |
+| Thống kê theo khoản, báo cáo thu theo tháng | 1120×645 | US-019, US-018 | Đã có code (Sprint 4), mục menu "Thống kê" như Figma; frame "Thống kê – 1120x645" |
 | Tài khoản của tôi (tab) | 1120×645 | US-023 | Đã có code (Sprint 2) |
 | Quản lý tài khoản (tab, chỉ Quản trị viên) | 1120×645 | US-020, US-022 | Đã có code (Sprint 2) |
 | Khoản thu (danh mục, tạo khoản tự nguyện) | 1120×645 | US-005, US-006 | Đã có code (Sprint 2) |
-| Công nợ: tab "Chốt công nợ" và "Hộ nợ đọng" | 1120×645 | US-009, US-017 | Chốt công nợ: đã có code (Sprint 2); tab "Hộ nợ đọng": đã có code (Sprint 4), chưa có frame riêng trên Figma |
+| Công nợ: tab "Chốt công nợ" và "Hộ nợ đọng" | 1120×645 | US-009, US-017 | Chốt công nợ: đã có code (Sprint 2); tab "Hộ nợ đọng": đã có code (Sprint 4), frame "Công nợ – Hộ nợ đọng (US-017)"; frame "Chốt công nợ" vẽ lại theo code ngày 15/11/2026 |
 | Sửa khoản thu của hộ (hộp thoại, 2 trạng thái) | 480 rộng | US-008 | Đã có code (Sprint 2) |
 | Lịch sử biến động của hộ (hộp thoại) | 820 rộng | US-027 | Đã có code (Sprint 2) |
 | Thu phí: tab "Thu tiền" và "Phiếu thu hôm nay" | 1120×645 | US-007, US-010 – US-014 | Có trên Figma (frame "Thu phí – Thu tiền – 1120x645", "Thu phí – Phiếu thu hôm nay – 1120x645", thẻ "Đặc tả: Thu phí"); đã có code khớp thiết kế (Sprint 3) |
@@ -82,7 +82,7 @@ Phần thiết kế chưa làm hết được ghi rõ để khỏi nhầm với 
 | Nút hộp thoại | Tiếng Việt: "Đồng ý", "Hủy", "Đóng"; hộp thoại Hủy phiếu dùng "Hủy phiếu" và "Đóng" (`HopThoai`) | Đã làm |
 | Thu phí (Thu tiền, Phiếu thu hôm nay, Hủy phiếu) | Theo Figma; menu có trạng thái "đang chọn" và logo BlueMoon về Trang chính (#34); "Tiền mặt" không chọn sẵn (AC-038) khớp Figma đã sửa; tab, bảng, nút theo bộ thành phần (TS-004); thu một hộ 4 thao tác (AC-072) | Đã làm |
 | Thanh menu chung | Figma đã có mục "Tài khoản của tôi" trong khung chung và mục Công nợ, khớp menu trong code; mục "Thống kê" giữa Thu phí và Tài khoản (Sprint 4) | Đã làm |
-| Trang chính (frame "Trang chính – 1440x1024") | Có tiêu đề tháng, thẻ "Đã thu tháng này" và "Hộ còn nợ" (bấm để mở tab "Hộ nợ đọng"), biểu đồ cột chồng công nợ 6 tháng theo quy tắc biểu đồ (`BieuDoThuPhi`; Figma còn là cột đơn theo ngày thu, chưa vẽ lại), nhắc chốt, biến động gần đây bên phải biểu đồ; nội dung cuộn được khi cửa sổ thấp. Chưa có: thẻ "Hộ đang ở", "Nhân khẩu", khung "Khoản thu mới cập nhật" và dải "Thao tác nhanh" | Xét ở TS-004 |
+| Trang chính (frame "Trang chính – 1440x1024") | Có tiêu đề tháng, thẻ "Đã thu tháng này" và "Hộ còn nợ" (bấm để mở tab "Hộ nợ đọng"), biểu đồ cột chồng công nợ 6 tháng theo quy tắc biểu đồ (`BieuDoThuPhi`; Figma vẽ lại ngày 15/11/2026 với số liệu seed-demo, kèm frame "tooltip của cột biểu đồ"), nhắc chốt, biến động gần đây bên phải biểu đồ; nội dung cuộn được khi cửa sổ thấp. Chưa có: thẻ "Hộ đang ở", "Nhân khẩu", khung "Khoản thu mới cập nhật" và dải "Thao tác nhanh" | Xét ở TS-004 |
 | Thống kê theo khoản | Chọn khoản; khoản bắt buộc chọn tháng đã chốt (mặc định tháng gần nhất), quỹ tự nguyện hiện "Thu từ … đến …" chỉ đọc; kết quả: tổng đã thu chữ lớn, số phụ. Chưa có frame trên Figma, dựng theo kiểu các màn 1120×645 | Vẽ frame ở TS-004 nếu cần |
 | Hộ gia đình, Nhân khẩu | Theo bộ thành phần (TS-004); form bên phải rộng 430, cột nhãn 156/140 px cho chữ 16 px; hàng nút dưới xuống dòng khi chật. Chưa có frame riêng trên Figma | Đã làm |
 | In ấn (biên lai, thông báo, danh sách tạm vắng) | Xem trước 640×560 rồi chọn máy in; danh sách tạm vắng in khổ ngang và xuất Excel (AC-014); báo cáo thu tháng xuất Excel ở màn Thống kê (US-018); cần PDF thì in qua máy in PDF | Đã làm |
@@ -127,6 +127,26 @@ bộ biến của phương án A (`-mau-chinh`, `-mau-chinh-dam`, `-mau-nen`,
 `-mau-xen-ke` dòng xen kẽ, `-mau-nen-loi` nền nút nguy hiểm khi rê chuột);
 màu "bề mặt" (trắng) viết thẳng trong CSS. Biến `-mau-phu-nhat` (`#94A3B8`,
 2,6:1 trên trắng) đã bỏ: phiếu đã hủy dùng chữ phụ như Figma.
+
+Biến riêng của biểu đồ công nợ (giống nhau ở cả ba phương án; Figma: nhóm
+`bieu-do/`, thêm ngày 15/11/2026):
+
+| Biến Figma | Biến CSS | Màu | Dùng cho |
+|---|---|---|---|
+| `mau/chinh-dam` | `-mau-bd-dung-han` | theo phương án | Phần "Thu đúng hạn" |
+| `bieu-do/tre-han` | `-mau-bd-tre-han` | `#D97706` | Phần "Thu trễ hạn" |
+| `bieu-do/con-no` | `-mau-bd-con-no` | `#E2E8F0` | Nền phần "Còn nợ"; viền dùng "chữ phụ" (`-mau-bd-vien-con-no`) |
+
+### Figma khớp code (15/11/2026)
+
+File "BlueMoon – Thiết kế giao diện" được đối chiếu với ảnh màn thật (controller
+thật trên seed-demo) và sửa cho khớp: Trang chính, Đăng nhập, Khoản thu, Chốt
+công nợ, Tài khoản của tôi, Quản lý tài khoản. Khối có trong thiết kế mà code
+không có được **ẩn, không xóa**; mỗi thẻ đặc tả có hàng "Khác với code" hoặc
+"Khối đã ẩn" ghi phần còn lệch. Còn lệch có chủ ý: nhãn màu cho Loại, Vai trò,
+Trạng thái (code là chữ thường); hộp thoại "Sửa khoản thu" hai ô và "Tổng mới"
+(code một ô); bộ lọc Khoản thu (đã ẩn, code chưa có). Chi tiết:
+[ra-soat-giao-dien.md](../review/ra-soat-giao-dien.md).
 
 ## Chữ
 
