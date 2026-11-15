@@ -101,7 +101,7 @@ code tương ứng biến `-mau-*` của `css/giao-dien.css`.
 | chữ | `#0F172A` | `#134E4A` | `#020617` |
 | chữ phụ | `#526077` | `#475569` | `#334155` |
 | viền | `#CBD5E1` | `#99D5CC` | `#64748B` |
-| lỗi | `#B91C1C` | `#DC2626` | `#B91C1C` |
+| lỗi | `#B91C1C` | `#B91C1C` | `#B91C1C` |
 | thành công | `#166534` | `#15803D` | `#166534` |
 
 Chữ phụ của phương án A là `#526077` (biến `-mau-phu`): tương phản 5,8:1 trên
@@ -144,8 +144,10 @@ thật trên seed-demo) và sửa cho khớp: Trang chính, Đăng nhập, Kho�
 công nợ, Tài khoản của tôi, Quản lý tài khoản. Khối có trong thiết kế mà code
 không có được **ẩn, không xóa**; mỗi thẻ đặc tả có hàng "Khác với code" hoặc
 "Khối đã ẩn" ghi phần còn lệch. Còn lệch có chủ ý: nhãn màu cho Loại, Vai trò,
-Trạng thái (code là chữ thường); hộp thoại "Sửa khoản thu" hai ô và "Tổng mới"
-(code một ô); bộ lọc Khoản thu (đã ẩn, code chưa có). Chi tiết:
+Trạng thái (code là chữ thường); bộ lọc Khoản thu (đã ẩn, code chưa có). Hai
+frame hộp thoại "Sửa khoản phải nộp" đã vẽ lại theo code (một ô "Số tiền" và
+"Ghi chú", trạng thái khóa khi khoản đã có phiếu thu); hai ô và dòng "Tổng
+mới" của thiết kế cũ được ẩn. Chi tiết:
 [ra-soat-giao-dien.md](../review/ra-soat-giao-dien.md).
 
 ## Chữ
