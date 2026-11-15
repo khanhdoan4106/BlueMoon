@@ -42,6 +42,17 @@ dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/). Mã story
 
 ### Thay đổi
 
+- **Biểu đồ "Thu phí 6 tháng gần nhất" ở Trang chính (US-016, giả định
+  46):** đổi từ một cột tổng tiền thu theo ngày thu sang **cột chồng theo
+  công nợ của từng tháng đã chốt**. Mỗi cột là tổng phải nộp các khoản bắt
+  buộc của tháng, chia "Thu đúng hạn", "Thu trễ hạn", "Còn nợ"; hạn nộp là
+  ngày cuối tháng được chốt. Trên đầu cột ghi tỷ lệ đã thu; tháng chưa
+  chốt ghi "Chưa chốt"; có chú giải ba màu và tooltip (phải nộp, ba phần,
+  tỷ lệ, số hộ đã đóng đủ). Cột hẹp lại (45% khoảng cách giữa hai tháng,
+  tối đa 72 px). Đơn vị "Triệu đồng" nằm ngang ở đầu trục Y thay cho tên
+  trục xoay dọc bị vẽ sai dấu tiếng Việt. Thẻ "Đã thu tháng này" không
+  đổi, vẫn tính theo ngày thu (giả định 24); chú thích dưới biểu đồ nói rõ
+  hai cách tính khác nhau. Không đổi CSDL.
 - **Checkstyle trong `mvn verify` (quy ước mã):** kiểm mỗi dòng Java tối đa
   80 cột (đếm theo ký tự) và không dùng tab, cho cả `src/main` và
   `src/test`; CI trượt nếu vi phạm. Cấu hình ở `config/checkstyle.xml`.

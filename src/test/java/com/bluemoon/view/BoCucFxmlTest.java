@@ -64,8 +64,10 @@ class BoCucFxmlTest {
                     "Chưa đọc được số liệu. Bấm BlueMoon để thử lại."),
             Map.entry("noDongLabel",
                     "Chưa đọc được số liệu. Bấm BlueMoon để thử lại."),
-            Map.entry("chuThichLabel", "Cột đậm: tháng 12 chưa kết thúc,"
-                    + " số liệu tính đến hôm nay."),
+            Map.entry("chuThichLabel", "Mỗi cột là công nợ bắt buộc của"
+                    + " một tháng; hạn nộp là ngày cuối tháng đó. Tháng 12"
+                    + " đang thu, tính đến hôm nay. Thẻ \"Đã thu tháng"
+                    + " này\" tính theo ngày thu nên có thể khác."),
             Map.entry("nhacChotLabel", "Tháng 12/2026 chưa chốt công nợ."
                     + " Chốt để tạo khoản phải nộp cho các hộ đang ở."),
             Map.entry("ketQuaTieuDeLabel", "Quỹ ủng hộ đồng bào bị ảnh"

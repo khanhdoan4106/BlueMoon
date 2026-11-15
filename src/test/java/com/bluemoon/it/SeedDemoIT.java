@@ -10,9 +10,9 @@ import com.bluemoon.dao.KhoanPhiDaoImpl;
 import com.bluemoon.dao.NhatKyDaoImpl;
 import com.bluemoon.dao.NoDongDaoImpl;
 import com.bluemoon.dao.ThongKeDaoImpl;
+import com.bluemoon.model.CongNoThang;
 import com.bluemoon.model.HoNoDong;
 import com.bluemoon.model.TaiKhoan;
-import com.bluemoon.model.ThuThang;
 import com.bluemoon.model.TrangThaiHo;
 import com.bluemoon.model.VaiTro;
 import com.bluemoon.service.NhatKyService;
@@ -23,6 +23,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -135,15 +136,52 @@ class SeedDemoIT {
                 .soHoConNo() > no.size(), "có cả hộ nợ 1-2 tháng");
     }
 
+    /**
+     * Biểu đồ công nợ ở Trang chính (giả định 46): năm tháng trước đều đã
+     * chốt, có phần đúng hạn và còn nợ; tháng mà hộ A1702 đóng bù sau
+     * hạn có phần trễ hạn ít nhất bằng số tiền hộ đó đóng bù.
+     */
     @Test
-    void trangChinhCoSauThangThuVaNhatKyCoNoiDung() {
+    void trangChinhCoCongNoSauThangVaNhatKyCoNoiDung() throws SQLException {
         ThongKeService tk = new ThongKeService(new ThongKeDaoImpl(),
                 new KhoanPhiDaoImpl(), new DongHoCsdl());
-        List<ThuThang> sau = tk.tongQuan(admin).sauThang();
+        List<CongNoThang> sau = tk.tongQuan(admin).congNo();
         assertEquals(6, sau.size());
-        // Năm tháng trước đều có tiền; tháng này có thể chưa (ngày 1-2).
-        assertTrue(sau.subList(0, 5).stream()
-                .allMatch(t -> t.tong().signum() > 0), sau.toString());
+        // Tháng này có thể chưa chốt (ngày 1-2).
+        for (CongNoThang c : sau.subList(0, 5)) {
+            assertTrue(c.daChot(), c.toString());
+            assertTrue(c.dungHan().signum() > 0, c.toString());
+            assertTrue(c.conNo().signum() > 0, c.toString());
+            assertEquals(0, c.phaiNop().compareTo(
+                    c.dungHan().add(c.treHan()).add(c.conNo())));
+            assertTrue(c.soHoDongDu() > 0
+                    && c.soHoDongDu() < c.tongSoHo(), c.toString());
+        }
+        int soThangDongBu = 0;
+        try (Connection c = Database.getConnection();
+                Statement st = c.createStatement();
+                ResultSet rs = st.executeQuery("SELECT d.thang, "
+                        + "SUM(pn.so_tien) FROM phai_nop pn "
+                        + "JOIN dot_thu d ON d.id = pn.dot_thu_id "
+                        + "JOIN ho_gia_dinh h ON h.id = pn.ho_id "
+                        + "JOIN phieu_thu_chi_tiet ct "
+                        + "ON ct.phai_nop_da_thu = pn.id "
+                        + "JOIN phieu_thu pt ON pt.id = ct.phieu_thu_id "
+                        + "WHERE h.ma_can_ho = 'A1702' AND pt.thoi_diem >= "
+                        + "DATE_ADD(d.thang, INTERVAL 1 MONTH) "
+                        + "GROUP BY d.thang")) {
+            while (rs.next()) {
+                YearMonth thang = YearMonth.from(
+                        rs.getDate(1).toLocalDate());
+                CongNoThang cn = sau.stream()
+                        .filter(x -> x.thang().equals(thang)).findFirst()
+                        .orElseThrow();
+                assertTrue(cn.treHan().compareTo(rs.getBigDecimal(2)) >= 0,
+                        "A1702 đóng bù " + thang + ": " + cn);
+                soThangDongBu++;
+            }
+        }
+        assertTrue(soThangDongBu > 0, "A1702 phải có tháng đóng bù");
         LocalDate homNay = LocalDate.now(new DongHoCsdl());
         assertFalse(new NhatKyService(new NhatKyDaoImpl()).theoKhoang(admin,
                 homNay.minusMonths(6), homNay, null).isEmpty());

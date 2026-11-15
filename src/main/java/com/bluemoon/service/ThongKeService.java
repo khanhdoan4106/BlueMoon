@@ -4,11 +4,11 @@ import com.bluemoon.dao.KhoanPhiDao;
 import com.bluemoon.dao.ThongKeDao;
 import com.bluemoon.dao.ThongKeDao.SoLieuKhoan;
 import com.bluemoon.dao.ThongKeDao.TyLeThu;
+import com.bluemoon.model.CongNoThang;
 import com.bluemoon.model.KhoanPhi;
 import com.bluemoon.model.LoaiKhoanPhi;
 import com.bluemoon.model.TaiKhoan;
 import com.bluemoon.model.ThongKeKhoan;
-import com.bluemoon.model.ThuThang;
 import com.bluemoon.model.VaiTro;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -62,17 +62,19 @@ public class ThongKeService {
      * Tổng quan tháng hiện tại cho Trang chính.
      *
      * @param nguoi tài khoản đang đăng nhập
-     * @return tổng thu tháng, tỷ lệ thu (nếu đã chốt) và thu 6 tháng
+     * @return tổng thu tháng, tỷ lệ thu (nếu đã chốt) và công nợ 6
+     *         tháng
      * @throws NghiepVuException nếu không có quyền
      */
     public TongQuan tongQuan(TaiKhoan nguoi) {
         PhanQuyen.yeuCau(nguoi, VaiTro.QUAN_TRI, VaiTro.THU_QUY);
         YearMonth thang = thangHienTai();
-        List<ThuThang> sauThang = thuGanNhat(thang);
-        BigDecimal daThu = sauThang.get(sauThang.size() - 1).tong();
+        BigDecimal daThu = dao.thuTheoThang(thang, thang)
+                .getOrDefault(thang, BigDecimal.ZERO);
         Optional<TyLeThu> tyLe = dao.tyLeThu(thang);
         return new TongQuan(thang, daThu, tyLe.isPresent(),
-                tyLe.map(ThongKeService::phanTram).orElse(null), sauThang);
+                tyLe.map(ThongKeService::phanTram).orElse(null),
+                congNoGanNhat(thang));
     }
 
     /**
@@ -94,13 +96,17 @@ public class ThongKeService {
                 .getOrDefault(thang, BigDecimal.ZERO);
     }
 
-    /** Thu của 6 tháng tới tháng cuối, một truy vấn; tháng trống là 0. */
-    private List<ThuThang> thuGanNhat(YearMonth cuoi) {
+    /**
+     * Công nợ của 6 tháng tới tháng cuối (giả định 46), một truy vấn;
+     * tháng chưa chốt vẫn có trong danh sách, đánh dấu chưa chốt.
+     */
+    private List<CongNoThang> congNoGanNhat(YearMonth cuoi) {
         YearMonth dau = cuoi.minusMonths(SO_THANG_BIEU_DO - 1L);
-        Map<YearMonth, BigDecimal> co = dao.thuTheoThang(dau, cuoi);
-        List<ThuThang> kq = new ArrayList<>();
+        Map<YearMonth, CongNoThang> co = dao.congNoTheoThang(dau, cuoi);
+        List<CongNoThang> kq = new ArrayList<>();
         for (YearMonth t = dau; !t.isAfter(cuoi); t = t.plusMonths(1)) {
-            kq.add(new ThuThang(t, co.getOrDefault(t, BigDecimal.ZERO)));
+            CongNoThang c = co.get(t);
+            kq.add(c == null ? CongNoThang.chuaChot(t) : c);
         }
         return kq;
     }
@@ -191,9 +197,10 @@ public class ThongKeService {
      * @param daChot tháng đã chốt công nợ hay chưa
      * @param phanTram phần trăm đã thu của tổng phải thu; null nếu chưa
      *        chốt hoặc không có khoản phải nộp
-     * @param sauThang thu của 6 tháng gần nhất, cũ trước, tháng hiện tại cuối
+     * @param congNo công nợ của 6 tháng gần nhất (giả định 46), cũ trước,
+     *        tháng hiện tại cuối
      */
     public record TongQuan(YearMonth thang, BigDecimal daThu, boolean daChot,
-            Integer phanTram, List<ThuThang> sauThang) {
+            Integer phanTram, List<CongNoThang> congNo) {
     }
 }

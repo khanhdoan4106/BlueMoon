@@ -1,13 +1,18 @@
 package com.bluemoon.it;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.bluemoon.config.Database;
 import com.bluemoon.dao.CongNoDaoImpl;
 import com.bluemoon.dao.HoGiaDinhDaoImpl;
 import com.bluemoon.dao.KhoanPhiDaoImpl;
 import com.bluemoon.dao.PhieuThuDaoImpl;
 import com.bluemoon.dao.ThongKeDaoImpl;
 import com.bluemoon.model.CachTinhPhi;
+import com.bluemoon.model.CongNoThang;
 import com.bluemoon.model.GioiTinh;
 import com.bluemoon.model.HinhThucThanhToan;
 import com.bluemoon.model.HoGiaDinh;
@@ -21,13 +26,15 @@ import com.bluemoon.model.PhieuThuMoi;
 import com.bluemoon.model.QuanHeChuHo;
 import com.bluemoon.model.TaiKhoan;
 import com.bluemoon.model.ThongKeKhoan;
-import com.bluemoon.model.ThuThang;
 import com.bluemoon.model.TrangThaiHo;
 import com.bluemoon.model.TrangThaiKhoanPhi;
 import com.bluemoon.model.TrangThaiNhanKhau;
 import com.bluemoon.service.CongNoService;
 import com.bluemoon.service.ThongKeService;
 import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -39,8 +46,9 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Số liệu thu phí trên MySQL thật (US-016, US-019, AC-046, AC-047, AC-052,
- * AC-053): phiếu đã hủy không tính, ranh giới tháng, 6 tháng có tháng
- * trống, khoản bắt buộc theo tháng chốt, khoản tự nguyện đếm hộ.
+ * AC-053): phiếu đã hủy không tính, ranh giới tháng, công nợ 6 tháng chia
+ * đúng hạn, trễ hạn, còn nợ (giả định 46), khoản bắt buộc theo tháng chốt,
+ * khoản tự nguyện đếm hộ.
  */
 class ThongKeIT {
 
@@ -185,20 +193,103 @@ class ThongKeIT {
                 thongKe.tongThuThang(admin, T11));
     }
 
+    /**
+     * Giả định 46. Mỗi tháng phải nộp 2.226.000 đ (DV 927.500 + QL
+     * 1.298.500 của ba hộ). Tháng 10: A đóng DV lúc 23:59:59 ngày 31/10
+     * (đúng hạn) và QL lúc 0 giờ ngày 1/11 (trễ hạn); B đóng DV trong
+     * tháng rồi bị hủy phiếu, đóng bù ngày 5/11 (trễ hạn); C chưa đóng.
+     */
     @Test
-    void sauThangCoThangTrong() {
-        dongGop(hoA, quy, "5000", LocalDateTime.of(2026, 5, 31, 12, 0));
-        dongGop(hoA, quy, "6000", LocalDateTime.of(2026, 6, 1, 12, 0));
-        dongGop(hoB, quy, "9000", LocalDateTime.of(2026, 9, 15, 12, 0));
-        dongGop(hoC, quy, "11000", LocalDateTime.of(2026, 11, 10, 12, 0));
-        List<ThuThang> ds = thongKe.tongQuan(admin).sauThang();
+    void congNoThangChiaDungHanTreHanConNo() {
+        thu(phaiNop(T10, hoA, dichVu),
+                LocalDateTime.of(2026, 10, 31, 23, 59, 59));
+        thu(phaiNop(T10, hoA, quanLy), LocalDateTime.of(2026, 11, 1, 0, 0));
+        huy(thu(phaiNop(T10, hoB, dichVu),
+                LocalDateTime.of(2026, 10, 10, 9, 0)));
+        thu(phaiNop(T10, hoB, dichVu), LocalDateTime.of(2026, 11, 5, 9, 0));
+        // Dong gop tu nguyen khong phai cong no.
+        dongGop(hoC, quy, "100000", LocalDateTime.of(2026, 10, 12, 9, 0));
+
+        List<CongNoThang> ds = thongKe.tongQuan(admin).congNo();
+
         assertEquals(6, ds.size());
         assertEquals(YearMonth.of(2026, 6), ds.get(0).thang());
-        assertEquals(T11, ds.get(5).thang());
-        String[] mong = {"6000", "0", "0", "9000", "0", "11000"};
-        for (int i = 0; i < 6; i++) {
-            bang(mong[i], ds.get(i).tong());
+        // Thang 6 den thang 9 chua chot.
+        for (int i = 0; i < 4; i++) {
+            assertFalse(ds.get(i).daChot(), ds.get(i).toString());
+            assertNull(ds.get(i).phanTram());
         }
+        CongNoThang t10 = ds.get(4);
+        assertEquals(T10, t10.thang());
+        assertTrue(t10.daChot());
+        bang("2226000", t10.phaiNop());
+        bang("377500", t10.dungHan());
+        bang("828500", t10.treHan());
+        bang("1020000", t10.conNo());
+        assertEquals(54, t10.phanTram());
+        assertEquals(1, t10.soHoDongDu());
+        assertEquals(3, t10.tongSoHo());
+
+        CongNoThang t11 = ds.get(5);
+        assertEquals(T11, t11.thang());
+        bang("2226000", t11.phaiNop());
+        bang("0", t11.daThu());
+        bang("2226000", t11.conNo());
+        assertEquals(0, t11.phanTram());
+        assertEquals(0, t11.soHoDongDu());
+        assertEquals(3, t11.tongSoHo());
+    }
+
+    /**
+     * Khoản sửa về 0 đ không phải công nợ (giả định 33): không vào phải
+     * nộp, và hộ chỉ còn khoản đó thì đã đóng đủ. Tổng ba phần luôn bằng
+     * phải nộp.
+     */
+    @Test
+    void congNoThangBoKhoanKhongDongVaDemHoDongDu() {
+        congNoDao.suaSoTien(phaiNop(T11, hoC, dichVu).id(), BigDecimal.ZERO,
+                admin.getId(), "Miễn phí");
+        thu(phaiNop(T11, hoA, dichVu), LocalDateTime.of(2026, 11, 5, 9, 0));
+        thu(phaiNop(T11, hoA, quanLy), LocalDateTime.of(2026, 11, 5, 9, 1));
+        thu(phaiNop(T11, hoC, quanLy), LocalDateTime.of(2026, 11, 6, 9, 0));
+        thu(phaiNop(T11, hoB, dichVu), LocalDateTime.of(2026, 11, 7, 9, 0));
+
+        List<CongNoThang> ds = thongKe.tongQuan(admin).congNo();
+
+        CongNoThang t11 = ds.get(5);
+        // 2.226.000 - 250.000 (DV cua C da sua ve 0).
+        bang("1976000", t11.phaiNop());
+        bang("1556000", t11.dungHan());
+        bang("0", t11.treHan());
+        bang("420000", t11.conNo());
+        assertEquals(78, t11.phanTram());
+        assertEquals(2, t11.soHoDongDu(), "A và C; B còn phí quản lý");
+        assertEquals(3, t11.tongSoHo());
+        for (CongNoThang c : ds) {
+            bang(c.phaiNop().toPlainString(),
+                    c.dungHan().add(c.treHan()).add(c.conNo()));
+            assertTrue(c.conNo().signum() >= 0, c.toString());
+        }
+    }
+
+    /** Tháng đã chốt mà không có khoản phải nộp: có cột 0, không tỷ lệ. */
+    @Test
+    void congNoThangDaChotKhongCoKhoanPhaiNop() throws SQLException {
+        try (Connection c = Database.getConnection();
+                Statement st = c.createStatement()) {
+            st.executeUpdate("INSERT INTO dot_thu (thang, nguoi_chot) "
+                    + "VALUES ('2026-09-01', " + admin.getId() + ")");
+        }
+
+        CongNoThang t9 = thongKe.tongQuan(admin).congNo().get(3);
+
+        assertEquals(YearMonth.of(2026, 9), t9.thang());
+        assertTrue(t9.daChot());
+        bang("0", t9.phaiNop());
+        bang("0", t9.conNo());
+        assertNull(t9.phanTram());
+        assertEquals(0, t9.tongSoHo());
+        assertEquals(0, t9.soHoDongDu());
     }
 
     /**

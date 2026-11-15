@@ -186,7 +186,8 @@ public class TrangChinhController {
 
     /**
      * US-016: tong thu thang hien tai (gia dinh 24), ty le thu cua cong no
-     * thang nay va bieu do 6 thang. Chua dang nhap (test) thi bo qua.
+     * thang nay va bieu do cong no 6 thang (gia dinh 46). Chua dang nhap
+     * (test) thi bo qua.
      */
     private void hienTongQuan() {
         TaiKhoan tk = PhienLamViec.hienTai();
@@ -202,9 +203,8 @@ public class TrangChinhController {
                     + t.getYear());
             daThuLabel.setText(SoTien.hienThi(tq.daThu()));
             tyLeLabel.setText(dongTyLe(tq));
-            bieuDo.hien(tq.sauThang(), t);
-            chuThichLabel.setText("Cột đậm: tháng " + t.getMonthValue()
-                    + " chưa kết thúc, số liệu tính đến hôm nay.");
+            bieuDo.hien(tq.congNo(), t);
+            chuThichLabel.setText(BieuDoThuPhi.chuThich(tq.congNo(), t));
         } catch (NghiepVuException | CauHinhException | DaoException e) {
             daThuLabel.setText("–");
             tyLeLabel.setText(
