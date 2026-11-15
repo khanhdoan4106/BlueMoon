@@ -60,8 +60,10 @@ class BoCucFxmlTest {
             Map.entry("soDongNhatKyLabel", "12345 thao tác"),
             Map.entry("tieuDeLabel", "Tổng quan tháng 12/2026"),
             Map.entry("daThuLabel", "999.999.999.999 đ"),
-            Map.entry("tyLeLabel", "Chưa đọc được số liệu. Bấm BlueMoon để thử lại."),
-            Map.entry("noDongLabel", "Chưa đọc được số liệu. Bấm BlueMoon để thử lại."),
+            Map.entry("tyLeLabel",
+                    "Chưa đọc được số liệu. Bấm BlueMoon để thử lại."),
+            Map.entry("noDongLabel",
+                    "Chưa đọc được số liệu. Bấm BlueMoon để thử lại."),
             Map.entry("chuThichLabel", "Cột đậm: tháng 12 chưa kết thúc,"
                     + " số liệu tính đến hôm nay."),
             Map.entry("nhacChotLabel", "Tháng 12/2026 chưa chốt công nợ."

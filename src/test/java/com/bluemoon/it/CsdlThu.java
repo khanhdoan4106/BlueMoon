@@ -10,17 +10,26 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.regex.Pattern;
 
 /**
  * CSDL dung cho kiem thu tich hop (lop *IT, chay bang mvn verify -Pmysql).
  * Chi chay khi bien moi truong BLUEMOON_DB_URL tro toi mot CSDL co chu
  * "test" trong ten, de khong bao gio xoa nham CSDL bluemoon dang dung.
+ *
+ * <p>Hai user (docs/setup.md, muc 4): DAO va Service duoc thu bang user ung
+ * dung ({@code BLUEMOON_DB_USER}, chi co SELECT, INSERT, UPDATE); viec tao
+ * bang, trigger va nap seed dung user quan tri
+ * ({@code BLUEMOON_DB_ADMIN_USER}, {@code BLUEMOON_DB_ADMIN_PASSWORD}).
+ * Khong dat user quan tri thi moi viec dung user ung dung, khi do user nay
+ * phai du quyen tao bang (vd root).
  */
 final class CsdlThu {
 
@@ -28,7 +37,69 @@ final class CsdlThu {
     private static final Pattern URL_THU =
             Pattern.compile("jdbc:mysql://[^/]+/[^/?]*test[^/?]*(\\?.*)?");
 
+    /** Bien moi truong: user quan tri cua CSDL thu. */
+    static final String BIEN_QUAN_TRI = "BLUEMOON_DB_ADMIN_USER";
+    /** Bien moi truong: mat khau cua user quan tri. */
+    static final String BIEN_MAT_KHAU_QUAN_TRI = "BLUEMOON_DB_ADMIN_PASSWORD";
+
     private CsdlThu() {
+    }
+
+    /**
+     * Da cau hinh user quan tri rieng, khac user ung dung, hay chua.
+     *
+     * @return true neu kiem thu dang chay voi hai user tach biet
+     */
+    static boolean tachUser() {
+        String quanTri = System.getenv(BIEN_QUAN_TRI);
+        return quanTri != null && !quanTri.isBlank() && !quanTri.equals(
+                Database.docCauHinh().getProperty("user"));
+    }
+
+    /**
+     * Ten user quan tri; chua cau hinh thi la user ung dung.
+     *
+     * @return ten user dung de tao bang, trigger
+     */
+    static String userQuanTri() {
+        String quanTri = System.getenv(BIEN_QUAN_TRI);
+        return quanTri == null || quanTri.isBlank()
+                ? Database.docCauHinh().getProperty("user") : quanTri;
+    }
+
+    /**
+     * Mat khau cua {@link #userQuanTri()}.
+     *
+     * @return mat khau, chuoi rong neu khong dat
+     */
+    static String matKhauQuanTri() {
+        String quanTri = System.getenv(BIEN_QUAN_TRI);
+        if (quanTri == null || quanTri.isBlank()) {
+            return Database.docCauHinh().getProperty("password");
+        }
+        String matKhau = System.getenv(BIEN_MAT_KHAU_QUAN_TRI);
+        return matKhau == null ? "" : matKhau;
+    }
+
+    /**
+     * Ket noi bang user quan tri, cung CSDL va mui gio phien nhu ket noi
+     * cua ung dung. Dung cho viec ung dung khong duoc lam: tao, xoa bang,
+     * tao trigger, nap seed.
+     *
+     * @return ket noi dang mo, noi goi dong
+     * @throws SQLException neu khong ket noi duoc
+     */
+    static Connection quanTri() throws SQLException {
+        Properties cauHinh = Database.docCauHinh();
+        Connection conn = DriverManager.getConnection(
+                cauHinh.getProperty("url"), userQuanTri(), matKhauQuanTri());
+        try (Statement st = conn.createStatement()) {
+            st.execute("SET time_zone = '" + Database.MUI_GIO_PHIEN + "'");
+        } catch (SQLException e) {
+            conn.close();
+            throw e;
+        }
+        return conn;
     }
 
     /**
@@ -41,7 +112,7 @@ final class CsdlThu {
         String url = System.getenv("BLUEMOON_DB_URL");
         assumeTrue(url != null && URL_THU.matcher(url).matches(),
                 "Can BLUEMOON_DB_URL tro toi CSDL ten co 'test'");
-        try (Connection conn = Database.getConnection();
+        try (Connection conn = quanTri();
                 Statement st = conn.createStatement()) {
             st.execute("SET FOREIGN_KEY_CHECKS = 0");
             for (String bang : cacBang(st)) {
@@ -66,7 +137,7 @@ final class CsdlThu {
      * cap (setup.md): khong xoa bang nao truoc.
      */
     static void chayLaiSchema() {
-        try (Connection conn = Database.getConnection();
+        try (Connection conn = quanTri();
                 Statement st = conn.createStatement()) {
             for (String lenh : lenhTaoBang()) {
                 st.execute(lenh);
@@ -78,7 +149,7 @@ final class CsdlThu {
 
     /** Chay database/seed.sql (bo chu thich va USE) tren CSDL thu. */
     static void chaySeed() {
-        try (Connection conn = Database.getConnection();
+        try (Connection conn = quanTri();
                 Statement st = conn.createStatement()) {
             for (String lenh : lenhCuaTep("seed.sql")) {
                 st.execute(lenh);
@@ -112,7 +183,7 @@ final class CsdlThu {
      * ";" nam ngoai chuoi.
      */
     static void chaySeedDemo() {
-        try (Connection conn = Database.getConnection();
+        try (Connection conn = quanTri();
                 Statement st = conn.createStatement()) {
             for (String lenh : lenhNgoaiChuoi("seed-demo.sql")) {
                 st.execute(lenh);

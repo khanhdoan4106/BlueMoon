@@ -103,7 +103,8 @@ class SaoLuuIT {
         mysql = timCongCu("mysql");
         assumeTrue(mysqldump != null && mysql != null,
                 "Bo qua SaoLuuIT: khong tim thay mysqldump/mysql trong PATH"
-                        + " hay C:\\Program Files\\MySQL\\MySQL Server 8.0\\bin");
+                        + " hay C:\\Program Files\\MySQL\\MySQL"
+                        + " Server 8.0\\bin");
 
         cauHinh = Database.docCauHinh();
         Matcher m = URL.matcher(cauHinh.getProperty("url"));
@@ -117,10 +118,12 @@ class SaoLuuIT {
 
         thuMuc = Files.createTempDirectory("bluemoon-sao-luu-it");
         // Mat khau di qua tep tuy chon nhu script, khong qua dong lenh.
+        // Khoi phuc tao CSDL va trigger nen dung user quan tri (setup.md,
+        // muc 7), khong phai user ung dung.
         tepTuyChon = thuMuc.resolve("client.cnf");
         Files.writeString(tepTuyChon, "[client]\nhost=" + host + "\nport="
-                + cong + "\nuser=" + giaTri(cauHinh.getProperty("user"))
-                + "\npassword=" + giaTri(cauHinh.getProperty("password"))
+                + cong + "\nuser=" + giaTri(CsdlThu.userQuanTri())
+                + "\npassword=" + giaTri(CsdlThu.matKhauQuanTri())
                 + "\n", StandardCharsets.UTF_8);
         thucThi("DROP DATABASE IF EXISTS `" + csdlKhoiPhuc + "`");
     }
@@ -166,8 +169,9 @@ class SaoLuuIT {
         return null;
     }
 
+    /** Tao, xoa CSDL khoi phuc: viec cua user quan tri. */
     private static void thucThi(String sql) {
-        try (Connection c = Database.getConnection();
+        try (Connection c = CsdlThu.quanTri();
                 Statement st = c.createStatement()) {
             st.execute(sql);
         } catch (SQLException e) {
@@ -177,7 +181,7 @@ class SaoLuuIT {
 
     private Connection ketNoiKhoiPhuc() throws SQLException {
         return DriverManager.getConnection(urlKhoiPhuc,
-                cauHinh.getProperty("user"), cauHinh.getProperty("password"));
+                CsdlThu.userQuanTri(), CsdlThu.matKhauQuanTri());
     }
 
     /** Chay mot chuong trinh, tra ve ma thoat; loi ghi vao tep stderr. */
@@ -404,7 +408,8 @@ class SaoLuuIT {
             assertEquals(cacDong(nguon, cotSinh), sinhKp);
             assertTrue(sinhKp.contains(
                     "phieu_thu_chi_tiet.phai_nop_da_thu STORED GENERATED"));
-            assertTrue(sinhKp.contains("nhan_khau.chu_ho_cua STORED GENERATED"));
+            assertTrue(sinhKp.contains(
+                    "nhan_khau.chu_ho_cua STORED GENERATED"));
 
             // Van tinh lai khi doi cot nguon, va UNIQUE tren cot sinh van
             // chan thu trung, chu ho thu hai.

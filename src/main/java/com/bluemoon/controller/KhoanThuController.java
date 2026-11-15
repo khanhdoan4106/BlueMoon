@@ -102,7 +102,8 @@ public class KhoanThuController {
     private void onSuaDonGia() {
         KhoanPhi k = bangKhoan.getSelectionModel().getSelectedItem();
         if (k == null) {
-            baoLoi("Bấm chọn khoản phí dịch vụ hoặc phí quản lý trong bảng trước");
+            baoLoi("Bấm chọn khoản phí dịch vụ hoặc phí quản lý trong"
+                    + " bảng trước");
             return;
         }
         try {

@@ -11,4 +11,19 @@
 | Dữ liệu nghiệp vụ | Không xóa cứng; đổi trạng thái để giữ lịch sử |
 | Gỡ lỗi | Không để lại mã bị comment-out hay `System.out.println` |
 
+## Kiểm tự động
+
+Hai mục định dạng được Checkstyle kiểm trong `mvn verify` (cấu hình:
+[`config/checkstyle.xml`](../../config/checkstyle.xml)), cho cả `src/main`
+và `src/test`; CI trượt nếu vi phạm:
+
+| Luật | Nội dung |
+|---|---|
+| `LineLength` | Mỗi dòng tối đa 80 cột, đếm theo **ký tự** (chữ có dấu tính một cột, không đếm theo byte). Dòng `package` và `import` không ngắt được nên được bỏ qua |
+| `FileTabCharacter` | Không có ký tự tab |
+
+Chỉ kiểm định dạng mà không chạy test: `mvn checkstyle:check@quy-uoc-ma`.
+Dòng dài thì ngắt trước toán tử `+` hoặc sau dấu `(`, thụt thêm 8 dấu cách.
+Các mục còn lại của bảng trên (đặt tên, Javadoc, SQL) vẫn kiểm khi review.
+
 Quy trình nhánh, commit và review: [workflow.md](../workflow.md).
