@@ -82,7 +82,7 @@ Phần thiết kế chưa làm hết được ghi rõ để khỏi nhầm với 
 | Nút hộp thoại | Tiếng Việt: "Đồng ý", "Hủy", "Đóng"; hộp thoại Hủy phiếu dùng "Hủy phiếu" và "Đóng" (`HopThoai`) | Đã làm |
 | Thu phí (Thu tiền, Phiếu thu hôm nay, Hủy phiếu) | Theo Figma; menu có trạng thái "đang chọn" và logo BlueMoon về Trang chính (#34); "Tiền mặt" không chọn sẵn (AC-038) khớp Figma đã sửa; tab, bảng, nút theo bộ thành phần (TS-004); thu một hộ 4 thao tác (AC-072) | Đã làm |
 | Thanh menu chung | Figma đã có mục "Tài khoản của tôi" trong khung chung và mục Công nợ, khớp menu trong code; mục "Thống kê" giữa Thu phí và Tài khoản (Sprint 4) | Đã làm |
-| Trang chính (frame "Trang chính – 1440x1024") | Có tiêu đề tháng, thẻ "Đã thu tháng này" và "Hộ còn nợ" (bấm để mở tab "Hộ nợ đọng"), biểu đồ 6 tháng theo quy tắc biểu đồ (`BieuDoThuPhi`), nhắc chốt, biến động gần đây bên phải biểu đồ; nội dung cuộn được khi cửa sổ thấp. Chưa có: thẻ "Hộ đang ở", "Nhân khẩu", khung "Khoản thu mới cập nhật" và dải "Thao tác nhanh" | Xét ở TS-004 |
+| Trang chính (frame "Trang chính – 1440x1024") | Có tiêu đề tháng, thẻ "Đã thu tháng này" và "Hộ còn nợ" (bấm để mở tab "Hộ nợ đọng"), biểu đồ cột chồng công nợ 6 tháng theo quy tắc biểu đồ (`BieuDoThuPhi`; Figma còn là cột đơn theo ngày thu, chưa vẽ lại), nhắc chốt, biến động gần đây bên phải biểu đồ; nội dung cuộn được khi cửa sổ thấp. Chưa có: thẻ "Hộ đang ở", "Nhân khẩu", khung "Khoản thu mới cập nhật" và dải "Thao tác nhanh" | Xét ở TS-004 |
 | Thống kê theo khoản | Chọn khoản; khoản bắt buộc chọn tháng đã chốt (mặc định tháng gần nhất), quỹ tự nguyện hiện "Thu từ … đến …" chỉ đọc; kết quả: tổng đã thu chữ lớn, số phụ. Chưa có frame trên Figma, dựng theo kiểu các màn 1120×645 | Vẽ frame ở TS-004 nếu cần |
 | Hộ gia đình, Nhân khẩu | Theo bộ thành phần (TS-004); form bên phải rộng 430, cột nhãn 156/140 px cho chữ 16 px; hàng nút dưới xuống dòng khi chật. Chưa có frame riêng trên Figma | Đã làm |
 | In ấn (biên lai, thông báo, danh sách tạm vắng) | Xem trước 640×560 rồi chọn máy in; danh sách tạm vắng in khổ ngang và xuất Excel (AC-014); báo cáo thu tháng xuất Excel ở màn Thống kê (US-018); cần PDF thì in qua máy in PDF | Đã làm |
@@ -177,13 +177,22 @@ Figma.
 
 - **Trục X:** có tên trục (vd "Tháng (năm 2026)") và nhãn ở từng mốc (T6 …
   T11).
-- **Trục Y:** có tên trục kèm đơn vị (vd "Triệu đồng"); với biểu đồ cột, thang
-  chia đều và bắt đầu từ 0; có vạch chia ở mỗi mốc và lưới ngang mờ.
+- **Trục Y:** có đơn vị (vd "Triệu đồng"); đơn vị trục Y đặt nằm ngang ở đầu
+  trục, không xoay chữ (JavaFX vẽ sai dấu tiếng Việt khi xoay); với biểu đồ
+  cột, thang chia đều và bắt đầu từ 0; có vạch chia ở mỗi mốc và
+  lưới ngang mờ.
 - **Cột đúng tỷ lệ** so với thang Y (không cắt gốc, không phóng đại); mẫu ghi
-  số liệu trên đầu cột.
-- **Chú giải** khi có từ hai chuỗi dữ liệu trở lên; một chuỗi thì không cần.
-- **Kỳ chưa kết thúc** tô khác các kỳ đã chốt (đậm hơn) kèm chú thích dưới
-  biểu đồ (vd "Cột đậm: tháng 11 chưa kết thúc, số liệu tính đến hôm nay").
+  số liệu trên đầu cột (tỷ lệ đã thu). Cột chồng thì các phần cùng một đơn
+  vị, cộng lại đúng bằng chiều cao cột.
+- **Bề rộng cột** khoảng 45% khoảng cách giữa hai mốc trên trục X, tối đa
+  72 px, để biểu đồ cân đối ở cả cửa sổ 1120×645 và 1440×1024.
+- **Chú giải** khi có từ hai chuỗi dữ liệu trở lên, đặt dưới biểu đồ; một
+  chuỗi thì không cần. Phần "còn thiếu" (vd "Còn nợ") dùng màu trung tính
+  nhạt có viền, không dùng đỏ đặc; chữ trên nền có tương phản ≥ 4,5:1.
+- **Kỳ chưa kết thúc** phải nói rõ bằng chú thích dưới biểu đồ (vd "Tháng 11
+  đang thu, tính đến hôm nay"); kỳ chưa có số liệu ghi chữ ngay tại vị trí
+  của kỳ đó (vd "Chưa chốt"), không vẽ cột 0.
+- **Di chuột** lên cột hiện tooltip có đủ số liệu của cột.
 - **Không dùng hai trục Y.**
 
 ## Đặc tả màn hình
@@ -199,7 +208,7 @@ Figma (khung "Đặc tả màn hình").
 | Đã thu tháng này | Thẻ số liệu | Tổng phiếu chưa hủy lập trong tháng, dạng "186.450.000 đ"; tháng chưa có phiếu là "0 đ" | AC-046, AC-047, giả định 24 |
 | Dòng phụ của thẻ | Nhãn phụ | "72% tổng phải thu" (làm tròn xuống); tháng chưa chốt: "Tháng 11 chưa chốt công nợ" | giả định 24 |
 | Hộ còn nợ | Thẻ số liệu, bấm được (con trỏ bàn tay) | Số hộ còn ít nhất một tháng nợ; dòng phụ "8 hộ nợ từ 3 tháng trở lên", không có thì "Không hộ nào nợ từ 3 tháng"; bấm thẻ mở Công nợ ở tab "Hộ nợ đọng" | US-017, giả định 25 |
-| Thu phí 6 tháng gần nhất | Biểu đồ cột | Theo [Quy tắc biểu đồ](#quy-tắc-biểu-đồ); đơn vị "Triệu đồng", dưới 1 triệu thì "Nghìn đồng"; trải hai năm thì nhãn "T12/25" | US-016 |
+| Thu phí 6 tháng gần nhất | Biểu đồ cột chồng | Theo [Quy tắc biểu đồ](#quy-tắc-biểu-đồ). **Tính theo công nợ từng tháng, khác thẻ "Đã thu tháng này" tính theo ngày thu.** Mỗi cột là tổng phải nộp các khoản bắt buộc của một tháng đã chốt, từ dưới lên: "Thu đúng hạn" (`-mau-bd-dung-han`), "Thu trễ hạn" (`-mau-bd-tre-han`), "Còn nợ" (`-mau-bd-con-no`, viền `-mau-bd-vien-con-no`); hạn nộp là ngày cuối tháng. Trên đầu cột: tỷ lệ đã thu "92%"; tháng chưa chốt: "Chưa chốt", không có cột; tháng đã chốt không có khoản phải nộp: "–". Chú giải ba mục ở dưới. Tooltip của cột: phải nộp, ba phần, tỷ lệ, "Đã đóng đủ: 31/39 hộ". Đơn vị "Triệu đồng" nằm ngang ở đầu trục Y, dưới 1 triệu thì "Nghìn đồng"; trải hai năm thì nhãn "T12/25". Chú thích dưới biểu đồ: "Mỗi cột là công nợ bắt buộc của một tháng; hạn nộp là ngày cuối tháng đó. Tháng 11 đang thu, tính đến hôm nay. Thẻ "Đã thu tháng này" tính theo ngày thu nên có thể khác." | US-016, giả định 46 |
 | Biến động nhân khẩu gần đây | Bảng gọn, chỉ Quản trị viên | Ngày, Căn hộ, Họ tên, Biến động; ghi chú và người ghi ở tooltip của dòng; khung rộng 560 px | US-027 |
 | Làm mới | – | Đọc lại số liệu khi đăng nhập và khi bấm logo, không hẹn giờ | – |
 

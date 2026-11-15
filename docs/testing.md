@@ -33,7 +33,7 @@ chứng minh trên MySQL thật, vì DAO giả không tái hiện được.
 | `DongHoCsdlIT` | Giờ đọc từ MySQL gần giờ máy, múi giờ Việt Nam |
 | `MuiGioIT` | JVM đặt UTC, New York, Kiritimati: phiếu lập 23:30 ngày 31/12 vẫn là 23:30 cùng ngày (không sang năm sau), giờ hủy phiếu, giờ biến động và giờ sửa khoản do CSDL điền đọc lại đúng giờ Việt Nam; phiên MySQL luôn ở `+07:00` dù máy chủ đặt UTC (chạy thử bằng `mysqld --default-time-zone=+00:00`, như máy chủ trên CI) |
 | `NhatKyIT` | Mỗi nhóm thao tác (hộ, nhân khẩu, tạm trú/tạm vắng, khoản thu, công nợ, phiếu thu, tài khoản) ghi đúng một dòng nhật ký với người làm, thao tác, đối tượng, nội dung đúng; sửa hộ, nhân khẩu chỉ ghi trường thật sự đổi; không ghi mã băm, không ghi tự đổi mật khẩu; thao tác xung đột hoặc trùng khóa không để lại dòng; ghi nhật ký lỗi thì thao tác hoàn tác; MySQL từ chối `UPDATE`, `DELETE` trên `nhat_ky`; chạy lại `schema.sql` không mất nhật ký; thời điểm theo giờ Việt Nam dù máy chủ chạy UTC; lọc theo khoảng ngày, loại thao tác, mới nhất ở trên |
-| `ThongKeIT` | Tổng thu tháng không tính phiếu đã hủy; ranh giới tháng (23:59:59 ngày cuối tháng, 00:00:00 ngày đầu tháng sau); nợ tháng trước đóng tháng này tính tháng này; 6 tháng có tháng trống là 0; khoản bắt buộc theo tháng chốt (khoản sửa về 0 đ không tính phải đóng) và tỷ lệ thu tháng hiện tại; khoản tự nguyện đếm hộ đã đóng và hộ ghi 0 đ; chưa có giao dịch thì 0 đ |
+| `ThongKeIT` | Tổng thu tháng không tính phiếu đã hủy; ranh giới tháng (23:59:59 ngày cuối tháng, 00:00:00 ngày đầu tháng sau); nợ tháng trước đóng tháng này tính tháng này; công nợ 6 tháng (giả định 46): phiếu lập 23:59:59 ngày cuối tháng là đúng hạn, 00:00:00 ngày đầu tháng sau là trễ hạn, phiếu đã hủy rồi đóng bù sau hạn là trễ hạn, đóng góp tự nguyện và khoản sửa về 0 đ không tính, đúng hạn + trễ hạn + còn nợ = phải nộp, số hộ đã đóng đủ, tháng chưa chốt, tháng đã chốt không có khoản phải nộp; khoản bắt buộc theo tháng chốt (khoản sửa về 0 đ không tính phải đóng) và tỷ lệ thu tháng hiện tại; khoản tự nguyện đếm hộ đã đóng và hộ ghi 0 đ; chưa có giao dịch thì 0 đ |
 | `NoDongIT` | Hộ nợ đọng: khoản đã thu không tính, khoản trong phiếu đã hủy tính lại là nợ, khoản sửa về 0 đ và đóng góp tự nguyện không tính, hai khoản cùng tháng chỉ tính một tháng, hộ đã chuyển đi vẫn có (kèm chủ hộ cũ), tổng nợ, thứ tự (số tháng, tổng nợ, mã căn hộ), tóm tắt cho Trang chính |
 | `BaoCaoThuIT` | Báo cáo thu tháng: phiếu đã hủy không có (khoản chỉ có trong phiếu hủy không thành cột), ranh giới tháng (23:59:59 cuối tháng, 00:00:00 đầu tháng sau), chủ hộ, số biên lai, phiếu thu hai tháng phí dịch vụ cộng vào một cột, tháng chưa có phiếu bị từ chối, tệp ghi từ CSDL thật đọc lại được |
 | `SaoLuuIT` | Chạy `mysqldump` với đúng các tùy chọn đọc từ `scripts/sao-luu.ps1` trên dữ liệu đủ mọi bảng (hộ, nhân khẩu, tạm vắng, biến động, khoản thu, công nợ, phiếu thu đã hủy và chưa hủy, nhật ký), nạp vào CSDL mới tên khác bằng `mysql`: số dòng mọi bảng, tổng tiền phiếu thu, tên có dấu, cột sinh (`phai_nop_da_thu`, `chu_ho_cua`, `cccd_dang_o`, `ma_dang_o`) vẫn đúng và vẫn là cột sinh, `UNIQUE` trên cột sinh vẫn chặn, trigger vẫn chặn `UPDATE`/`DELETE` trên `nhat_ky`; tự bỏ qua kèm thông báo nếu máy không có `mysqldump`/`mysql` |
@@ -53,14 +53,25 @@ không có chữ `test`, để không xóa nhầm CSDL `bluemoon` đang dùng.
 | IntelliJ | Maven → bluemoon → Lifecycle → `test` |
 | Dòng lệnh | `mvn test` hoặc `mvn verify` (cần Maven 3.9+ trong PATH) |
 
-Kết quả mong đợi: `BUILD SUCCESS`, 371 test (1 bỏ qua: `ChupManHinhTest`
-chỉ chạy khi có `-DchupAnh`). `mvn verify` không có
+Kết quả mong đợi: `BUILD SUCCESS`, 383 test (2 bỏ qua: `ChupManHinhTest`
+chỉ chạy khi có `-DchupAnh`, và phần vẽ Trang chính từ CSDL của
+`TrangChinhSoLieuTest` chỉ chạy khi có `-DchupCsdl`). `mvn verify` không có
 `-Pmysql` không chạy lớp `*IT`.
 
 `mvn verify` còn chạy Checkstyle sau khi test xong: dòng Java quá 80 cột
 hoặc có ký tự tab thì `BUILD FAILURE` kèm tệp và số dòng
 ([quy ước mã](design/coding-convention.md#kiểm-tự-động)). Chỉ kiểm định
 dạng: `mvn checkstyle:check@quy-uoc-ma`.
+
+Vẽ Trang chính bằng số liệu thật của một CSDL đã nạp `seed-demo.sql` (đọc
+qua Service thật, không sửa CSDL), kiểm chữ không chồng, không bị cắt, không
+xoay, rồi chụp cả màn và riêng khung biểu đồ ở 1440×1024 và 1120×645
+(PowerShell; ảnh của lần đổi biểu đồ nằm ở `docs/review/bieu-do-cong-no/`):
+
+```powershell
+$env:BLUEMOON_DB_URL = "jdbc:mysql://localhost:3306/<CSDL đã nạp seed-demo>?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh&characterEncoding=UTF-8"
+mvn test -Dtest=TrangChinhSoLieuTest -DchupCsdl=1 -DchupAnh=target/anh -DchupTienTo=sau
+```
 
 Chạy riêng test bố cục sau khi sửa FXML hoặc CSS:
 
@@ -96,7 +107,7 @@ mvn test -Dtest=ChupManHinhTest,ThuMotHoNamBuocTest,TrangChinhSoLieuTest -DchupA
    Nếu user ứng dụng không phải `bluemoon`, đặt thêm `BLUEMOON_DB_USER` và
    `BLUEMOON_DB_PASSWORD`.
 
-Kết quả mong đợi: 371 test đơn vị và 73 kiểm thử tích hợp đều đạt (MySQL
+Kết quả mong đợi: 383 test đơn vị và 75 kiểm thử tích hợp đều đạt (MySQL
 8.0). Hai test cấu hình (`DatabaseConfigTest`) tự bỏ qua khi đã đặt
 `BLUEMOON_DB_*`, nên log hiện "Skipped: 2" ở lần chạy này.
 
@@ -109,7 +120,7 @@ hai xanh:
 | Job | Làm gì |
 |---|---|
 | `build` | JDK 21, `mvn -B verify`: test đơn vị và test bố cục; `pwsh src/test/scripts/kiem-thu-sao-luu.ps1` |
-| `build-mysql` | Service `mysql:8.0`, CSDL `bluemoon_test`, `mvn -B verify -Pmysql`: thêm 73 kiểm thử tích hợp, DAO chạy bằng user `bluemoon_app` chỉ có `SELECT, INSERT, UPDATE`, bảng và trigger do root tạo; rồi chạy thật `scripts/sao-luu.ps1` trên CSDL dựng từ `schema.sql`, `seed.sql` và hai phiếu thu mẫu (một phiếu đã hủy; tệp tùy chọn tạo trong `RUNNER_TEMP`), `scripts/khoi-phuc-thu.ps1` trên tệp vừa tạo (phải `KHỚP`, rồi sửa nguồn thêm 100.000 đ cho cùng chữ số đầu và phải báo lệch tổng tiền, mã 1), và một lần sao lưu với mật khẩu sai (mã thoát khác 0, dòng `LỖI`, không còn tệp dở, giữ bản cũ) |
+| `build-mysql` | Service `mysql:8.0`, CSDL `bluemoon_test`, `mvn -B verify -Pmysql`: thêm 75 kiểm thử tích hợp, DAO chạy bằng user `bluemoon_app` chỉ có `SELECT, INSERT, UPDATE`, bảng và trigger do root tạo; rồi chạy thật `scripts/sao-luu.ps1` trên CSDL dựng từ `schema.sql`, `seed.sql` và hai phiếu thu mẫu (một phiếu đã hủy; tệp tùy chọn tạo trong `RUNNER_TEMP`), `scripts/khoi-phuc-thu.ps1` trên tệp vừa tạo (phải `KHỚP`, rồi sửa nguồn thêm 100.000 đ cho cùng chữ số đầu và phải báo lệch tổng tiền, mã 1), và một lần sao lưu với mật khẩu sai (mã thoát khác 0, dòng `LỖI`, không còn tệp dở, giữ bản cũ) |
 
 ## 3. Số test hiện tại
 
@@ -128,6 +139,7 @@ hai xanh:
 | Sau dữ liệu demo `seed-demo.sql` (chưa phát hành) | 366 | 69 |
 | Sau tách user CSDL, `QuyenCsdlIT` (chưa phát hành) | 366 | 73 |
 | Sau log lỗi `GhiLogLoiTest` và múi giờ khi chạy `App` (chưa phát hành) | 371 | 73 |
+| Sau biểu đồ công nợ 6 tháng, giả định 46 (chưa phát hành) | 383 | 75 |
 
 ## 4. Ánh xạ AC → test tự động
 
@@ -253,8 +265,8 @@ Khác ở Sprint 3, không gắn một AC riêng: chặn thu trùng và deadlock
 | AC-068 ghi nhật ký người sửa, nội dung, thời điểm | `NhatKyIT#hoGiaDinhGhiThemSuaChuyenDiVaChiGhiTruongThucSuDoi`, `#nhanKhauGhiThemSuaChuyenDiDoiChuHoVaDotCuTru`, `#khoanThuCongNoVaPhieuThuGhiDungNguoiLam`, `#taiKhoanGhiTaoDoiVaiTroKhoaMoKhoaDatLaiKhongGhiMatKhau`, `#thaoTacXungDotHoacTrungKhoaKhongDeLaiDong`, `#ghiNhatKyLoiThiThaoTacCungHoanTac`, `#thoiDiemLaGioVietNam`, `ThaoTacTest#maKhopRangBuocCheckTrongSchema`, `NoiDungNhatKyTest#chiGhiTruongThucSuDoi` | ✓ |
 | AC-069 xem theo thời gian, không sửa/xóa | `NhatKyServiceTest#thuQuyBiTuChoi`, `#locTheoKhoangNgayVaLoaiThaoTac`, `#tuNgaySauDenNgayBaoLoi`, `#thieuNgayBaoLoi`, `NhatKyIT#locTheoKhoangNgayVaLoaiThaoTacMoiNhatTruoc`, `#mysqlTuChoiSuaVaXoaNhatKy`, `#chayLaiSchemaKhongMatNhatKyVaVanChanSua`, `QuyenCsdlIT#userUngDungKhongGoDuocTriggerNhatKy`, `#userUngDungKhongXoaDuocNhatKy`, `#userUngDungKhongDoiDuocCauTrucVaKhongXoaCung`, `#quyenCuaUserUngDungChiGomDocThemSua`, `BoCucFxmlTest#khongCoChuBiCat` cho tab "Nhật ký thao tác" của `tai-khoan.fxml` | ◐ tab chỉ hiện với Quản trị viên kiểm tay |
 
-| AC-046 tổng đã thu trong tháng ở Trang chính | `ThongKeServiceTest#tongQuanThangHienTaiCoTyLeKhiDaChot`, `#sauThangCoThangTrongBangKhongVaChiMotLanDoc`, `#caHaiVaiTroDeuXemDuocNguoiKhacBiTuChoi`, `ThongKeIT#phieuDaHuyKhongTinh`, `#ranhGioiThang`, `#noThangTruocDongThangNayTinhThangNay`, `#sauThangCoThangTrong`, `DongTyLeTest#daChotHienPhanTram`, `#chuaChotBaoRo`, `ThangTrucYTest#mauFigma`, `#moiGiaTriNamTrongThangMocTron`, `BieuDoThuPhiTest#coTenHaiTrucVaNhanThang`, `#trucYBatDauTuKhongTheoMocTronCoLuoiNgang`, `#cotThangHienTaiKhacKieu`, `#soLieuTrenDauCot` | ◐ Trang chính với dữ liệu thật xem bằng mắt |
-| AC-047 tháng chưa có giao dịch thì 0 | `ThongKeServiceTest#thangKhongCoGiaoDichLaKhong`, `ThangTrucYTest#toanKhongVanCoThangMacDinh`, `BieuDoThuPhiTest#toanKhongVanVeTruc`, `ThongKeIT#phieuDaHuyKhongTinh` | ✓ |
+| AC-046 tổng đã thu trong tháng ở Trang chính | `ThongKeServiceTest#tongQuanThangHienTaiCoTyLeKhiDaChot`, `#congNoSauThangCoThangChuaChotVaChiMotLanDoc`, `#caHaiVaiTroDeuXemDuocNguoiKhacBiTuChoi`, `ThongKeIT#phieuDaHuyKhongTinh`, `#ranhGioiThang`, `#noThangTruocDongThangNayTinhThangNay`, `#congNoThangChiaDungHanTreHanConNo`, `#congNoThangBoKhoanKhongDongVaDemHoDongDu`, `CongNoThangTest#baPhanCongLaiBangPhaiNop`, `#tyLeLamTronXuongChiMotTramKhiThuDu`, `DongTyLeTest#daChotHienPhanTram`, `#chuaChotBaoRo`, `ThangTrucYTest#mauFigma`, `#moiGiaTriNamTrongThangMocTron`, `BieuDoThuPhiTest#coTenTrucXDonViNamNgangVaChuGiai`, `#khongChuNaoBiXoayVaDuCoChu`, `#trucYBatDauTuKhongTheoMocTronCoLuoiNgang`, `#baPhanChongLenNhauCongLaiBangPhaiNop`, `#beRongCotBangGanNuaKhoangCachCoGioiHan`, `#baMauKhacNhauConNoKhongDungDo`, `BieuDoThuPhiChuTest#tooltipCoDuBaPhanPhaiNopTyLeVaSoHo`, `#chuThichNoiCachTinhKhacTheDaThuThangNay`, `SeedDemoIT#trangChinhCoCongNoSauThangVaNhatKyCoNoiDung` | ◐ Trang chính với dữ liệu thật xem bằng mắt |
+| AC-047 tháng chưa có giao dịch thì 0 | `ThongKeServiceTest#thangKhongCoGiaoDichLaKhong`, `ThangTrucYTest#toanKhongVanCoThangMacDinh`, `BieuDoThuPhiTest#toanChuaChotVanVeTrucVaChuKhongChong`, `#tyLeTrenDauCotChuaChotVaKhongCoCongNo`, `CongNoThangTest#thangKhongCoCongNoKhongCoTyLe`, `#thangChuaChotKhongCoTyLe`, `ThongKeIT#phieuDaHuyKhongTinh`, `#congNoThangDaChotKhongCoKhoanPhaiNop` | ✓ |
 | AC-048 lọc hộ nợ từ 3 tháng trở lên | `NoDongServiceTest#nguongBaThang`, `#tatCaHoConNoTuMotThang`, `#caHaiVaiTroDeuXemDuocChuaDangNhapBiTuChoi`, `NoDongIT#locNoTuBaThangDungThuTu`, `#nhieuKhoanTrongHaiThangChuaPhaiNoDong`, `#khoanDaThuKhongTinhPhieuHuyTinhLai`, `#khoanKhongDongVaTuNguyenKhongTinhTomTat`, `#hoDaChuyenDiVanCo`, `TheHoConNoTest#bamTheMoCongNoOTabHoNoDong`, `#dongPhuCuaThe`, `BoCucFxmlTest#khongCoChuBiCat` cho tab "Hộ nợ đọng" của `cong-no.fxml` | ◐ tab tự tải khi mở và khi đổi lựa chọn kiểm tay |
 | AC-049 mã phòng, chủ hộ, số tháng nợ, tổng nợ | `NoDongIT#soThangTongNoVaChuHoDung`, `#hoDaChuyenDiVanCo`, `TheHoConNoTest#chuCuaBangNoDong`, `NoDongServiceTest#tomTatDemHoConNoVaHoNoDong` | ✓ |
 | AC-014 xuất danh sách tạm vắng ra tệp | `TamVangExcelTest#duTruongNhuBanIn`, `BaoCaoNhanKhauServiceTest#xuatTamVangRaTepExcel`, `#xuatTamVangKiemQuyenVaDuLieu`, `DanhSachTamVangTest#nutXuatExcelCanhNutInVaVoHieuKhiChuaCoDanhSach`, `TepExcelTest#loiGiuaChungKhongDeLaiTepDich` | ◐ mở tệp bằng Excel thật kiểm tay |
