@@ -25,6 +25,7 @@ import com.bluemoon.service.ThongTinDot;
 import com.bluemoon.service.ThongTinHo;
 import com.bluemoon.service.ThongTinNhanKhau;
 import com.bluemoon.util.NgayUtil;
+import com.bluemoon.util.DienTich;
 import com.bluemoon.util.PhienLamViec;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -136,8 +137,8 @@ public class HoGiaDinhController {
         ganCot(cotMa, t -> t.ho().getMaCanHo());
         ganCot(cotLoai, t -> t.ho().getLoaiCanHo().getNhan());
         ganCot(cotTang, t -> t.ho().getTang());
-        ganCot(cotDienTich, t -> t.ho().getDienTich().stripTrailingZeros()
-                .toPlainString());
+        ganCot(cotDienTich,
+                t -> DienTich.hien(t.ho().getDienTich()));
         ganCot(cotChuHo, t -> t.tenChuHo() == null ? "" : t.tenChuHo());
         ganCot(cotSoThanhVien, TomTatHo::soThanhVien);
         ganCot(cotSdt, t -> t.ho().getSoDienThoai() == null ? ""
@@ -274,8 +275,7 @@ public class HoGiaDinhController {
         maField.setText(ho.getMaCanHo());
         loaiCombo.setValue(ho.getLoaiCanHo());
         tangField.setText(String.valueOf(ho.getTang()));
-        dienTichField.setText(ho.getDienTich().stripTrailingZeros()
-                .toPlainString());
+        dienTichField.setText(DienTich.so(ho.getDienTich()));
         sdtField.setText(ho.getSoDienThoai() == null ? ""
                 : ho.getSoDienThoai());
         ngayPicker.setValue(ho.getNgayChuyenDen());

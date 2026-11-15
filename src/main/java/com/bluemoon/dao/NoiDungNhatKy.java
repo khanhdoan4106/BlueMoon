@@ -1,9 +1,8 @@
 package com.bluemoon.dao;
 
 import com.bluemoon.model.DotCuTru;
+import com.bluemoon.util.DienTich;
 import java.math.BigDecimal;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -35,12 +34,7 @@ final class NoiDungNhatKy {
     }
 
     static String dienTich(BigDecimal m2) {
-        if (m2 == null) {
-            return TRONG;
-        }
-        DecimalFormat f = new DecimalFormat("#,##0.00",
-                DecimalFormatSymbols.getInstance(VI));
-        return f.format(m2) + " m²";
+        return m2 == null ? TRONG : DienTich.hien(m2);
     }
 
     static String ngay(LocalDate ngay) {

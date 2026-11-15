@@ -599,6 +599,11 @@
     -fx-wrap-text: true;
 }
 
+/* Cot so va tien: can phai de cac hang don vi thang cot. */
+.table-cell.cot-so {
+    -fx-alignment: center-right;
+}
+
 .table-cell.qua-han {
     -fx-text-fill: -mau-loi;
     -fx-font-weight: bold;
@@ -608,6 +613,15 @@
    tren ScrollPane, vung nhin trong suot. */
 .cuon-form > .viewport {
     -fx-background-color: transparent;
+}
+
+/* Vung cuon nam trong mot khung trang .the (form Nhan khau): khong nen,
+   khong vien rieng; hang nut nam ngoai vung nay nen luon thay. */
+.cuon-trong,
+.cuon-trong > .viewport {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
 }
 
 /* Trang in (US-004, US-013, US-015): nen trang, chu den de in ro. Giay in

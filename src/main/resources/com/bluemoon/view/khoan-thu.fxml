@@ -64,7 +64,7 @@
         </VBox>
     </center>
     <right>
-        <VBox fx:id="taoBox" styleClass="the" spacing="10" prefWidth="340">
+        <VBox fx:id="taoBox" styleClass="the" spacing="4" prefWidth="340">
             <!-- Enter trong khung nay chi chay "Tao khoan thu" (PhimEnter). -->
             <properties enterChay="taoButton"/>
             <BorderPane.margin>
@@ -73,21 +73,18 @@
             <Label text="Tạo khoản thu tự nguyện" styleClass="tieu-de-form"/>
             <Label text="Tên khoản thu *"/>
             <TextField fx:id="tenField" promptText="vd Quỹ khuyến học 2026"/>
-            <HBox spacing="10">
-                <VBox spacing="4" HBox.hgrow="ALWAYS">
-                    <Label text="Từ ngày *"/>
-                    <DatePicker fx:id="tuNgayPicker"/>
-                </VBox>
-                <VBox spacing="4" HBox.hgrow="ALWAYS">
-                    <Label text="Đến ngày *"/>
-                    <DatePicker fx:id="denNgayPicker"/>
-                </VBox>
-            </HBox>
+            <!-- Hai o ngay xep doc, moi o rong het form: xep ngang thi goi
+                 y "ngày/tháng/năm" bi cat o 1120 px. -->
+            <Label text="Từ ngày *"/>
+            <DatePicker fx:id="tuNgayPicker" maxWidth="Infinity"/>
+            <Label text="Đến ngày *"/>
+            <DatePicker fx:id="denNgayPicker" maxWidth="Infinity"/>
             <Label text="Số tiền mỗi hộ (không bắt buộc)"/>
             <TextField fx:id="soTienField"
                        promptText="Để trống nếu không cố định"/>
             <Label text="Tên khoản thu không được trùng trong cùng đợt."
-                   styleClass="phu-de" wrapText="true"/>
+                   styleClass="phu-de" wrapText="true"
+                   minHeight="-Infinity"/>
             <Region VBox.vgrow="ALWAYS"/>
             <HBox spacing="10">
                 <Button minWidth="-Infinity" fx:id="taoButton" text="Tạo khoản thu"

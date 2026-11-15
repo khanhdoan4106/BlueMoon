@@ -69,10 +69,13 @@
                                 <TableColumn fx:id="cotCanHo" text="Căn hộ" prefWidth="110"/>
                                 <TableColumn fx:id="cotKhoan" text="Khoản" prefWidth="140"/>
                                 <TableColumn fx:id="cotDienTich" text="Diện tích"
-                                             prefWidth="100"/>
-                                <TableColumn fx:id="cotDonGia" text="Đơn giá" prefWidth="110"/>
+                                             prefWidth="115" minWidth="115"
+                                             styleClass="cot-so"/>
+                                <TableColumn fx:id="cotDonGia" text="Đơn giá" prefWidth="110"
+                                             styleClass="cot-so"/>
                                 <TableColumn fx:id="cotSoTien" text="Phải nộp"
-                                             prefWidth="130"/>
+                                             prefWidth="130"
+                                             styleClass="cot-so"/>
                                 <TableColumn fx:id="cotDaDong" text="Đã đóng" prefWidth="90"/>
                                 <TableColumn fx:id="cotGhiChu" text="Ghi chú" prefWidth="200"/>
                             </columns>
@@ -144,11 +147,13 @@
                             <TableColumn fx:id="cotNoChuHo" text="Chủ hộ"
                                          prefWidth="220"/>
                             <TableColumn fx:id="cotNoSoThang" text="Số tháng nợ"
-                                         prefWidth="120"/>
+                                         prefWidth="120"
+                                         styleClass="cot-so"/>
                             <TableColumn fx:id="cotNoTuThang" text="Nợ từ tháng"
                                          prefWidth="130"/>
                             <TableColumn fx:id="cotNoTong" text="Tổng tiền nợ"
-                                         prefWidth="160"/>
+                                         prefWidth="160"
+                                         styleClass="cot-so"/>
                         </columns>
                         <placeholder>
                             <Label fx:id="khongCoNoLabel"

@@ -88,6 +88,9 @@ public final class NgayUtil {
         return ngay == null ? "" : ngay.format(DINH_DANG);
     }
 
+    /** Gợi ý trong ô ngày còn trống, bằng tiếng Việt thay cho dd/mm/yyyy. */
+    public static final String GOI_Y_NGAY = "ngày/tháng/năm";
+
     /**
      * Cho DatePicker dung dinh dang dd/MM/yyyy.
      *
@@ -95,7 +98,7 @@ public final class NgayUtil {
      */
     public static void ganDinhDang(DatePicker picker) {
         picker.setConverter(new BoChuyenNgay());
-        picker.setPromptText("dd/mm/yyyy");
+        picker.setPromptText(GOI_Y_NGAY);
     }
 
     /**

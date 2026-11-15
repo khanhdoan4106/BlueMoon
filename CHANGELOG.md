@@ -61,6 +61,14 @@ dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/). Mã story
 
 ### Sửa
 
+- **Giao diện thống nhất hơn (rà soát giao diện, T1 – T4):** diện tích
+  hiện một kiểu "75,50 m²" ở Chốt công nợ, Hộ gia đình và nhật ký (trước
+  đây có nơi ghi "75.5 m²"); cột số và tiền ở Chốt công nợ, Hộ nợ đọng, Hộ
+  gia đình căn phải; ô ngày còn trống gợi ý "ngày/tháng/năm" thay cho
+  "dd/mm/yyyy", hai ô ngày ở form Khoản thu xếp dọc nên gợi ý không còn bị
+  cắt; ở màn Nhân khẩu, thông báo và hàng nút "Lưu", "Nhập mới", "Đặt làm
+  chủ hộ", "Đánh dấu chuyển đi" ghim ở cuối form, luôn thấy ở 1120×645
+  (chỉ phần ô nhập cuộn). Không đổi nghiệp vụ.
 - **Chữ bị cắt "…" trong bảng khi có dữ liệu (rà soát giao diện, G1 – G5):**
   ở cửa sổ 1120×645, bảng "Phiếu thu hôm nay" hiện đủ số biên lai, thời
   điểm, hình thức; "Khoản thu" hiện đủ loại, mức thu, trạng thái, còn tên
