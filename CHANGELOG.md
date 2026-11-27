@@ -399,8 +399,8 @@ biến động. **Phải dựng lại CSDL** khi nâng từ `v0.1.0`.
 
 97 test JUnit 5; CI chạy `mvn verify` cho mỗi Pull Request.
 
-[Chưa phát hành]: https://github.com/khanhdoan4106/IT3180-CNPM-Project-Group-16/compare/v1.0.0...main
-[v1.0.0]: https://github.com/khanhdoan4106/IT3180-CNPM-Project-Group-16/releases/tag/v1.0.0
-[v0.3.0]: https://github.com/khanhdoan4106/IT3180-CNPM-Project-Group-16/releases/tag/v0.3.0
-[v0.2.0]: https://github.com/khanhdoan4106/IT3180-CNPM-Project-Group-16/releases/tag/v0.2.0
-[v0.1.0]: https://github.com/khanhdoan4106/IT3180-CNPM-Project-Group-16/releases/tag/v0.1.0
+[Chưa phát hành]: https://github.com/khanhdoan4106/BlueMoon/compare/v1.0.0...main
+[v1.0.0]: https://github.com/khanhdoan4106/BlueMoon/releases/tag/v1.0.0
+[v0.3.0]: https://github.com/khanhdoan4106/BlueMoon/releases/tag/v0.3.0
+[v0.2.0]: https://github.com/khanhdoan4106/BlueMoon/releases/tag/v0.2.0
+[v0.1.0]: https://github.com/khanhdoan4106/BlueMoon/releases/tag/v0.1.0
